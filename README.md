@@ -14,7 +14,7 @@ The replaced (or "overridden") tracks will "behave" like the normal music. That 
 ![](./demo-data/jump-to-track.gif)
 
  Right click on the track you wish to replace and click `Override`.  
- Then select to override `With a local file.` or `From a youtube search.`.
+ Then choose to override `With a local file.` or `From a youtube search.`.
  
  When overriding from a youtube search enter your desired search term and choose an item.  
  Use `Continue` to see more search results.  
