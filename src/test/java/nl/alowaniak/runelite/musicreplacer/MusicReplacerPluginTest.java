@@ -1,13 +1,13 @@
-package com.example;
+package nl.alowaniak.runelite.musicreplacer;
 
 import net.runelite.client.RuneLite;
 import net.runelite.client.externalplugins.ExternalPluginManager;
 
-public class ExamplePluginTest
+public class MusicReplacerPluginTest
 {
 	public static void main(String[] args) throws Exception
 	{
-		ExternalPluginManager.loadBuiltin(ExamplePlugin.class);
+		ExternalPluginManager.loadBuiltin(MusicReplacerPlugin.class);
 		RuneLite.main(args);
 	}
 }
