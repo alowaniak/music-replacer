@@ -20,7 +20,7 @@ dependencies {
 	compileOnly 'org.projectlombok:lombok:1.18.4'
 	annotationProcessor 'org.projectlombok:lombok:1.18.4'
 
-	implementation 'org.openjfx:javafx-media:14'
+	implementation 'com.github.philfrei:AudioCue:-SNAPSHOT'
 	implementation 'com.github.TeamNewPipe:NewPipeExtractor:v0.19.8'
 
 	testImplementation 'junit:junit:4.12'

@@ -28,6 +28,7 @@ import org.schabi.newpipe.extractor.stream.StreamInfoItem;
 @Singleton
 class YouTubeSearcher
 {
+	public static final int PAGE_SIZE = 4;
 	@Inject
 	@Named("musicReplacerExecutor")
 	private ExecutorService executor;
@@ -40,11 +41,12 @@ class YouTubeSearcher
 			@Override
 			public Response execute(@Nonnull Request request) throws IOException
 			{
+				byte[] data = request.dataToSend();
 				okhttp3.Request.Builder reqBuilder = new okhttp3.Request.Builder()
 						.url(request.url())
 						.method(
 								request.httpMethod(),
-								request.dataToSend() == null ? null : RequestBody.create(null,  request.dataToSend())
+								data == null ? null : RequestBody.create(null,  data)
 						);
 				request.headers().forEach((k, v) -> v.forEach(e -> reqBuilder.addHeader(k, e)));
 
@@ -55,11 +57,12 @@ class YouTubeSearcher
 	}
 
 	/**
-	 * Does a (paginated of 4 items) search
+	 * Does a (paginated by 4 items) search
 	 *
-	 * @param term the search {@code term} to search for.
+	 * @param term the {@code term} to search for.
 	 * @param resultCollector this consumer will be called with the first argument being (at most) 4 search hits.
-	 *                        The second argument can be called by the consumer to "continue the search"
+	 *                        The second argument (which may be {@code null}: meaning no more search hits)
+	 *                        can be called by the consumer to "continue the search"
 	 *                        in which case this {@code resultCollector} will be called again with the next search hits.
 	 */
 	public void search(String term, BiConsumer<List<StreamInfoItem>, Runnable> resultCollector)
@@ -78,7 +81,7 @@ class YouTubeSearcher
 			catch (ExtractionException | IOException e)
 			{
 				log.warn("Something went wrong when searching youtube for: " + term, e);
-				resultCollector.accept(Collections.emptyList(), () -> {});
+				resultCollector.accept(Collections.emptyList(), null);
 			}
 		});
 	}
@@ -89,20 +92,30 @@ class YouTubeSearcher
 			.filter(e -> e instanceof StreamInfoItem).map(e -> (StreamInfoItem) e)
 			.collect(Collectors.toList());
 
-		resultCollector.accept(hits.subList(Math.min(start, hits.size()), Math.min(start+4, hits.size())), () -> executor.submit(() ->
+		resultCollector.accept(
+			hits.subList(Math.min(start, hits.size()), Math.min(start+ PAGE_SIZE, hits.size())),
+			() -> executor.submit(() ->
 			{
-				try
+				if (start + PAGE_SIZE < hits.size())
 				{
-					ListExtractor.InfoItemsPage<InfoItem> newPage = page;
-					if (start + 4 >= hits.size())
+					paginateSearch(resultCollector, search, start + PAGE_SIZE, page);
+				}
+				else if (page.hasNextPage())
+				{
+					try
 					{
-						newPage = search.getPage(page.getNextPage());
+						ListExtractor.InfoItemsPage<InfoItem> newPage = search.getPage(page.getNextPage());
+						paginateSearch(resultCollector, search, 0, newPage);
 					}
-					paginateSearch(resultCollector, search, page != newPage ? 0 : start + 4, newPage);
-				} catch (IOException | ExtractionException e)
+					catch (IOException | ExtractionException e)
+					{
+						log.warn("Something went wrong when searching next page.", e);
+						resultCollector.accept(Collections.emptyList(), null);
+					}
+				}
+				else
 				{
-					log.warn("Something went wrong when searching next page.", e);
-					resultCollector.accept(Collections.emptyList(), () -> {});
+					resultCollector.accept(Collections.emptyList(), null);
 				}
 			}
 		));
