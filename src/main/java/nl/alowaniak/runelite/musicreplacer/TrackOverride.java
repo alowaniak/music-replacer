@@ -1,6 +1,6 @@
 package nl.alowaniak.runelite.musicreplacer;
 
-import java.io.File;
+import java.nio.file.Path;
 import java.util.Map;
 import lombok.Value;
 
@@ -11,8 +11,8 @@ class TrackOverride
 	String originalPath;
 	Map<String, String> additionalInfo;
 
-	public File getFile()
+	public Path getPath()
 	{
-		return new File(Tracks.MUSIC_OVERRIDES_DIR, name + ".wav");
+		return Tracks.MUSIC_OVERRIDES_DIR.toPath().resolve(name + ".wav");
 	}
 }

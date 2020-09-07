@@ -28,6 +28,10 @@ import org.schabi.newpipe.extractor.stream.StreamInfoItem;
 @Singleton
 class YouTubeSearcher
 {
+	public static YouTubeSearcher ytSearcher;
+	{
+		ytSearcher = this;
+	}
 	public static final int PAGE_SIZE = 4;
 	@Inject
 	@Named("musicReplacerExecutor")
@@ -90,6 +94,7 @@ class YouTubeSearcher
 	{
 		List<StreamInfoItem> hits = page.getItems().stream()
 			.filter(e -> e instanceof StreamInfoItem).map(e -> (StreamInfoItem) e)
+			.filter(e -> e.getDuration() <= 7*60) // filter out longer than 7mins because wav gets too big
 			.collect(Collectors.toList());
 
 		resultCollector.accept(

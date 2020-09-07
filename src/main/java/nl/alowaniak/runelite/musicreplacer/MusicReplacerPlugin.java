@@ -1,10 +1,15 @@
 package nl.alowaniak.runelite.musicreplacer;
 
+import com.adonax.audiocue.AudioCue;
+import com.adonax.audiocue.AudioCueInstanceEvent;
+import com.adonax.audiocue.AudioCueListener;
 import com.google.inject.Binder;
+import com.google.inject.Provides;
 import com.google.inject.name.Names;
 import java.util.Objects;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import javafx.scene.media.MediaPlayer;
 import javax.inject.Inject;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
@@ -16,6 +21,7 @@ import net.runelite.api.events.GameTick;
 import net.runelite.api.widgets.Widget;
 import net.runelite.api.widgets.WidgetID;
 import net.runelite.client.callback.ClientThread;
+import net.runelite.client.config.ConfigManager;
 import net.runelite.client.eventbus.EventBus;
 import net.runelite.client.eventbus.Subscribe;
 import net.runelite.client.plugins.Plugin;
@@ -23,9 +29,6 @@ import net.runelite.client.plugins.PluginDependency;
 import net.runelite.client.plugins.PluginDescriptor;
 import net.runelite.client.plugins.music.MusicConfig;
 import net.runelite.client.plugins.music.MusicPlugin;
-import src.main.java.com.adonax.audiocue.AudioCue;
-import src.main.java.com.adonax.audiocue.AudioCueInstanceEvent;
-import src.main.java.com.adonax.audiocue.AudioCueListener;
 
 @Slf4j
 @PluginDescriptor(
@@ -36,8 +39,6 @@ import src.main.java.com.adonax.audiocue.AudioCueListener;
 @PluginDependency(MusicPlugin.class)
 public class MusicReplacerPlugin extends Plugin implements AudioCueListener
 {
-	public static final String CONFIG_GROUP = "musicreplacer";
-
 	public static final int CURRENTLY_PLAYING_WIDGET_ID = 6;
 	private static final int MUSIC_LOOP_STATE_VAR_ID = 4137;
 	public static final double MAX_VOL = 255;
@@ -47,6 +48,12 @@ public class MusicReplacerPlugin extends Plugin implements AudioCueListener
 	{
 		// Use our own ExecutorService instead of ScheduledExecutorService because the downloads can take a while
 		binder.bind(ExecutorService.class).annotatedWith(Names.named("musicReplacerExecutor")).toInstance(Executors.newSingleThreadExecutor());
+	}
+
+	@Provides
+	MusicReplacerConfig getConfig(ConfigManager configManager)
+	{
+		return configManager.getConfig(MusicReplacerConfig.class);
 	}
 
 	@Inject
@@ -75,6 +82,7 @@ public class MusicReplacerPlugin extends Plugin implements AudioCueListener
 	@Subscribe
 	public void onGameTick(GameTick tick)
 	{
+		MediaPlayer d;
 		Widget curTrackWidget = client.getWidget(WidgetID.MUSIC_GROUP_ID, CURRENTLY_PLAYING_WIDGET_ID);
 		if (curTrackWidget == null) return;
 
@@ -103,7 +111,7 @@ public class MusicReplacerPlugin extends Plugin implements AudioCueListener
 		if (currentOverride != null)
 		{
 			client.setMusicVolume(0);
-			audioCue = AudioCue.makeStereoCue(newOverride.getFile().toURI().toURL(), 1);
+			audioCue = AudioCue.makeStereoCue(newOverride.getPath().toUri().toURL(), 1);
 			audioCue.addAudioCueListener(this);
 			audioCue.open();
 			audioCue.play(0);
@@ -138,7 +146,10 @@ public class MusicReplacerPlugin extends Plugin implements AudioCueListener
 		if (currentOverride != null)
 		{
 			// Setting the music volume to 0 with invokeLater seems to prevents the original music from coming through
+			// I'm guessing because it depends on "where" in the client loop the vol is 0
+			// And with invokeLater it "overwrites" Music plugin's write at the correct "point" in the client loop
 			clientThread.invokeLater(() -> client.setMusicVolume(0));
+
 			if (audioCue != null)
 			{
 				double volume = (musicConfig.getMusicVolume() - 1) / MAX_VOL;
@@ -146,13 +157,19 @@ public class MusicReplacerPlugin extends Plugin implements AudioCueListener
 				{
 					if (!audioCue.getIsActive(0))
 					{
-						audioCue.play();
+						if (client.getVarbitValue(MUSIC_LOOP_STATE_VAR_ID) == 1)
+						{
+							audioCue.play();
+						}
 					}
 					else if (!audioCue.getIsPlaying(0))
 					{
 						audioCue.start(0);
 					}
-					audioCue.setVolume(0, volume);
+					if (audioCue.getIsActive(0))
+					{
+						audioCue.setVolume(0, volume);
+					}
 				}
 				else if (audioCue.getIsActive(0))
 				{

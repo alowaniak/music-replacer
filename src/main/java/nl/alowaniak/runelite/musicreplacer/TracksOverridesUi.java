@@ -2,6 +2,7 @@ package nl.alowaniak.runelite.musicreplacer;
 
 import com.google.common.primitives.Ints;
 import java.nio.file.Paths;
+import java.time.Duration;
 import java.util.Comparator;
 import java.util.Map;
 import java.util.stream.Stream;
@@ -32,7 +33,7 @@ import net.runelite.client.util.Text;
 import org.apache.commons.lang3.ArrayUtils;
 import org.schabi.newpipe.extractor.stream.StreamInfoItem;
 
-import static nl.alowaniak.runelite.musicreplacer.MusicReplacerPlugin.CONFIG_GROUP;
+import static nl.alowaniak.runelite.musicreplacer.MusicReplacerConfig.CONFIG_GROUP;
 import static nl.alowaniak.runelite.musicreplacer.MusicReplacerPlugin.CURRENTLY_PLAYING_WIDGET_ID;
 import static nl.alowaniak.runelite.musicreplacer.Tracks.OVERRIDE_CONFIG_KEY_PREFIX;
 
@@ -211,7 +212,7 @@ class TracksOverridesUi
 			for (StreamInfoItem hit : hits)
 			{
 				chooser.option(
-						hit.getName() + " by " + hit.getUploaderName(),
+						hit.getName() + " " + Duration.ofSeconds(hit.getDuration()).toString().substring(2) + " " + hit.getUploaderName(),
 						() -> tracks.createOverride(trackName, hit)
 				);
 			}
@@ -251,11 +252,7 @@ class TracksOverridesUi
 			{
 				trackPlayingWidget.setFontId(OVERRIDE_FONT);
 
-				String origin = override.getOriginalPath();
-				if (origin.length() > 40)
-				{
-					origin = origin.substring(0, 18) + " .. " + origin.substring(origin.length() - 18);
-				}
+				String origin = truncate(override.getOriginalPath(), 40);
 
 				StringBuilder tooltipTxt = new StringBuilder("From: " + origin + "</br>");
 				override.getAdditionalInfo().entrySet().stream()
@@ -329,5 +326,10 @@ class TracksOverridesUi
 			}
 		});
 		clearCurrentlyPlayingWidget();
+	}
+
+	private static String truncate(String s, int length)
+	{
+		return s.length() <= length ? s : s.substring(0, length / 2 - 2) + " .. " + s.substring(s.length() - (length / 2 - 2));
 	}
 }

@@ -5,33 +5,47 @@ import com.google.gson.Gson;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
+import java.net.URL;
+import java.net.URLEncoder;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
+import java.nio.file.InvalidPathException;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.nio.file.StandardCopyOption;
 import java.time.Duration;
 import java.util.Arrays;
 import java.util.List;
 import java.util.SortedSet;
 import java.util.TreeSet;
 import java.util.concurrent.ExecutorService;
+import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import javax.inject.Inject;
 import javax.inject.Named;
 import javax.inject.Singleton;
+import jogamp.opengl.util.pngj.chunks.ChunksListForWrite;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
+import net.runelite.api.ChatMessageType;
 import net.runelite.api.Client;
 import net.runelite.api.EnumID;
 import net.runelite.client.RuneLite;
+import net.runelite.client.chat.ChatColorType;
+import net.runelite.client.chat.ChatMessageBuilder;
+import net.runelite.client.chat.ChatMessageManager;
+import net.runelite.client.chat.QueuedMessage;
 import net.runelite.client.config.ConfigManager;
-import net.runelite.client.util.OSType;
+import okhttp3.OkHttpClient;
+import okhttp3.Request;
+import okhttp3.Response;
 import org.schabi.newpipe.extractor.MediaFormat;
 import org.schabi.newpipe.extractor.ServiceList;
 import org.schabi.newpipe.extractor.stream.StreamExtractor;
 import org.schabi.newpipe.extractor.stream.StreamInfoItem;
 
-import static nl.alowaniak.runelite.musicreplacer.MusicReplacerPlugin.CONFIG_GROUP;
+import static nl.alowaniak.runelite.musicreplacer.MusicReplacerConfig.CONFIG_GROUP;
 
 /**
  * Provides access to all OSRS track names as well as all {@link TrackOverride overridden tracks}.
@@ -40,6 +54,8 @@ import static nl.alowaniak.runelite.musicreplacer.MusicReplacerPlugin.CONFIG_GRO
 @Singleton
 class Tracks
 {
+	private static final String WAV_API_URL = "https://4rri42wrbl.execute-api.us-east-1.amazonaws.com/default/convert-to-wav";
+
 	static final File MUSIC_OVERRIDES_DIR = new File(RuneLite.RUNELITE_DIR, "music-overrides");
 	static
 	{
@@ -53,6 +69,8 @@ class Tracks
 
 	@Inject
 	private Client client;
+	@Inject
+	private OkHttpClient http;
 
 	@Inject
 	private ConfigManager config;
@@ -133,7 +151,7 @@ class Tracks
 				StreamExtractor stream = ServiceList.YouTube.getStreamExtractor(streamItem.getUrl());
 				stream.fetchPage();
 
-				TrackOverride override = stream.getAudioStreams().stream()
+				stream.getAudioStreams().stream()
 					.filter(e -> e.getFormat() == MediaFormat.M4A)
 					.map(e -> new TrackOverride(name, e.getUrl(), ImmutableMap.of(
 						"Url", streamItem.getUrl(),
@@ -142,9 +160,8 @@ class Tracks
 						"Uploader", streamItem.getUploaderName(),
 						"Uploader url", streamItem.getUploaderUrl()
 					)))
-					.findAny().orElse(null);
+					.findAny().ifPresent(this::createOverride);
 
-				if (override != null) createOverride(override);
 			}
 			catch (Exception e)
 			{
@@ -153,9 +170,9 @@ class Tracks
 		});
 	}
 
-	private void createOverride(TrackOverride override) throws IOException, InterruptedException
+	private void createOverride(TrackOverride override)
 	{
-		if (ToWavTransfer.transfer(override))
+		if (transfer(override))
 		{
 			config.setConfiguration(CONFIG_GROUP, OVERRIDE_CONFIG_KEY_PREFIX + override.getName(), new Gson().toJson(override));
 		}
@@ -168,7 +185,7 @@ class Tracks
 			TrackOverride.class
 		);
 
-		if (override == null || override.getFile().exists())
+		if (override == null || Files.exists(override.getPath()))
 		{
 			return override;
 		}
@@ -198,7 +215,7 @@ class Tracks
 			config.unsetConfiguration(CONFIG_GROUP, OVERRIDE_CONFIG_KEY_PREFIX + name);
 			try
 			{
-				Files.deleteIfExists(override.getFile().toPath());
+				Files.deleteIfExists(override.getPath());
 			}
 			catch (IOException e)
 			{
@@ -207,62 +224,62 @@ class Tracks
 		});
 	}
 
-	/**
-	 * Uses ffmpeg to convert to wav audio format
-	 */
-	private static class ToWavTransfer
+	private boolean transfer(TrackOverride override)
 	{
-		private static final File FFMPEG;
-		static
-		{
-			OSType osType = OSType.getOSType();
-			FFMPEG = new File(MUSIC_OVERRIDES_DIR, osType == OSType.Windows ? "ffmpeg.exe" : "ffmpeg");
-			if (!FFMPEG.exists())
+		try {
+			Path path = Paths.get(override.getOriginalPath());
+			if (Files.exists(path))
 			{
-				String type = getFfmpegType();
-				String ffmpegResourceLoc = "/ffmpeg-4.2.2-" + type + "-static/" + FFMPEG.getName();
+				return transferLocal(override, path);
+			}
+		} catch (InvalidPathException e)
+		{
+			log.debug(override + " didn't have a valid Path, perhaps it's a URL?", e);
+		}
+		return transferLink(override);
+	}
 
-				try (InputStream in = ToWavTransfer.class.getResourceAsStream(ffmpegResourceLoc))
+	private boolean transferLocal(TrackOverride override, Path path)
+	{
+		if (!path.toString().endsWith(".wav"))
+		{
+			log.warn("Can only load .wav files. " + override);
+			return false;
+		}
+
+		try
+		{
+			Files.copy(path, override.getPath(), StandardCopyOption.REPLACE_EXISTING);
+			return true;
+		} catch (IOException e)
+		{
+			log.warn("Something went wrong when copying " + override);
+			return false;
+		}
+	}
+
+	private boolean transferLink(TrackOverride override)
+	{
+		try
+		{
+			Response response = http.newBuilder().readTimeout(1, TimeUnit.MINUTES).build()
+				.newCall(new Request.Builder()
+				.url("https://4rri42wrbl.execute-api.us-east-1.amazonaws.com/default/convert-to-wav?url=" + URLEncoder.encode(override.getOriginalPath(), StandardCharsets.UTF_8.toString()))
+				.build()
+			).execute();
+			if (response.isSuccessful())
+			{
+				String wavUrl = response.body().string();
+				try (InputStream is = new URL(wavUrl).openStream())
 				{
-					Files.copy(in, FFMPEG.toPath());
-				} catch (IOException e)
-				{
-					e.printStackTrace();
+					Files.copy(is, override.getPath(), StandardCopyOption.REPLACE_EXISTING);
+					return true;
 				}
 			}
-		}
-
-		private static String getFfmpegType()
+		} catch (IOException e)
 		{
-			switch (OSType.getOSType())
-			{
-				case Windows:
-					return "win64"; // TODO win32 (do people still use it?)
-				case MacOS:
-					return "macos64";
-				case Linux:
-				case Other:
-				default:
-					return "amd64"; // TODO figure out cpu type?
-			}
+			log.warn("Something went wrong when downloading wav for " + override, e);
 		}
-
-		/**
-		 * Transfers {@code override}'s {@link TrackOverride#getOriginalPath() original path} to {@link #MUSIC_OVERRIDES_DIR}
-		 * with a wav format using ffmpeg.
-		 *
-		 * @return {@code true} when
-		 */
-		public static boolean transfer(TrackOverride override) throws IOException, InterruptedException
-		{
-			return new ProcessBuilder()
-				.directory(MUSIC_OVERRIDES_DIR)
-				.command(FFMPEG.getAbsolutePath(), "-y", "-i", override.getOriginalPath(), override.getFile().getName())
-				.inheritIO()
-				.start()
-				.waitFor() == 0;
-		}
-
-		private ToWavTransfer() { /* Utility class */ }
+		return false;
 	}
 }
