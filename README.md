@@ -24,7 +24,8 @@ The replaced (or "overridden") tracks will "behave" like the normal music. That 
  
  When overriding with a local file just enter the full path and press `enter`.  
  ![](./demo-data/override-from-local.gif)  
- The track will be **bold** and when hovering over its currently-playing label you'll see its original path (files are copied to your `.runelite\music-overrides` folder and played from there).
+ The track will be **bold** and when hovering over its currently-playing label you'll see its original path (files are copied to your `.runelite\music-overrides` folder and played from there).  
+**NOTE:** Currently only `.wav` files can be used!
  
  To remove an override right click (an overridden) track and select `Remove override`.  
  To remove all overrides right click the music tab and select `Remove overrides`.  
@@ -36,12 +37,7 @@ The replaced (or "overridden") tracks will "behave" like the normal music. That 
  For any questions or feedback you can find me on Discord as `Mr.A#0220`
  
  There are currently still some bugs/missing features such as:
- - Music keeps playing when logging out
  - Login screen music can't be overridden
- - Original music sort of plays when holding the volume control slider and also sometimes sneaks in between when songs switch
- - Music doesn't respect the LOOP
- - Music is still "playing" on volume 0 (thus turning volume from on->off->on doesn't restart as original music does)
- - Tooltip is sometimes shown more than once
   
  Feel free to help out by creating issues, pull requests, or just messaging me (on Discord).
  
