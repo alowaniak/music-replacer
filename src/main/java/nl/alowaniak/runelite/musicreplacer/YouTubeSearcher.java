@@ -28,10 +28,6 @@ import org.schabi.newpipe.extractor.stream.StreamInfoItem;
 @Singleton
 class YouTubeSearcher
 {
-	public static YouTubeSearcher ytSearcher;
-	{
-		ytSearcher = this;
-	}
 	public static final int PAGE_SIZE = 4;
 	@Inject
 	@Named("musicReplacerExecutor")
@@ -54,8 +50,10 @@ class YouTubeSearcher
 						);
 				request.headers().forEach((k, v) -> v.forEach(e -> reqBuilder.addHeader(k, e)));
 
-				okhttp3.Response res = http.newCall(reqBuilder.build()).execute();
-				return new Response(res.code(), res.message(), res.headers().toMultimap(), res.body().string(), res.request().url().toString());
+				try (okhttp3.Response res = http.newCall(reqBuilder.build()).execute())
+				{
+					return new Response(res.code(), res.message(), res.headers().toMultimap(), res.body().string(), res.request().url().toString());
+				}
 			}
 		});
 	}
@@ -98,7 +96,7 @@ class YouTubeSearcher
 			.collect(Collectors.toList());
 
 		resultCollector.accept(
-			hits.subList(Math.min(start, hits.size()), Math.min(start+ PAGE_SIZE, hits.size())),
+			hits.subList(Math.min(start, hits.size()), Math.min(start + PAGE_SIZE, hits.size())),
 			() -> executor.submit(() ->
 			{
 				if (start + PAGE_SIZE < hits.size())

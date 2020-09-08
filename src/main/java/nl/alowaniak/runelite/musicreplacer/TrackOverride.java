@@ -9,6 +9,7 @@ class TrackOverride
 {
 	String name;
 	String originalPath;
+	boolean fromLocal;
 	Map<String, String> additionalInfo;
 
 	public Path getPath()

@@ -1,15 +1,14 @@
 package nl.alowaniak.runelite.musicreplacer;
 
 import com.google.common.collect.ImmutableMap;
-import com.google.gson.Gson;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.UnsupportedEncodingException;
 import java.net.URL;
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
-import java.nio.file.InvalidPathException;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.nio.file.StandardCopyOption;
@@ -25,17 +24,11 @@ import java.util.stream.Stream;
 import javax.inject.Inject;
 import javax.inject.Named;
 import javax.inject.Singleton;
-import jogamp.opengl.util.pngj.chunks.ChunksListForWrite;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
-import net.runelite.api.ChatMessageType;
 import net.runelite.api.Client;
 import net.runelite.api.EnumID;
 import net.runelite.client.RuneLite;
-import net.runelite.client.chat.ChatColorType;
-import net.runelite.client.chat.ChatMessageBuilder;
-import net.runelite.client.chat.ChatMessageManager;
-import net.runelite.client.chat.QueuedMessage;
 import net.runelite.client.config.ConfigManager;
 import okhttp3.OkHttpClient;
 import okhttp3.Request;
@@ -45,6 +38,7 @@ import org.schabi.newpipe.extractor.ServiceList;
 import org.schabi.newpipe.extractor.stream.StreamExtractor;
 import org.schabi.newpipe.extractor.stream.StreamInfoItem;
 
+import static net.runelite.http.api.RuneLiteAPI.GSON;
 import static nl.alowaniak.runelite.musicreplacer.MusicReplacerConfig.CONFIG_GROUP;
 
 /**
@@ -54,14 +48,11 @@ import static nl.alowaniak.runelite.musicreplacer.MusicReplacerConfig.CONFIG_GRO
 @Singleton
 class Tracks
 {
-	private static final String WAV_API_URL = "https://4rri42wrbl.execute-api.us-east-1.amazonaws.com/default/convert-to-wav";
-
 	static final File MUSIC_OVERRIDES_DIR = new File(RuneLite.RUNELITE_DIR, "music-overrides");
-	static
-	{
+	{ // Not static initializer, if we fail we only want to fail loading our plugin
 		if (!MUSIC_OVERRIDES_DIR.exists() && !MUSIC_OVERRIDES_DIR.mkdirs())
 		{
-			log.warn("Failed to create " + MUSIC_OVERRIDES_DIR);
+			throw new IllegalStateException("Failed to create " + MUSIC_OVERRIDES_DIR);
 		}
 	}
 
@@ -132,14 +123,7 @@ class Tracks
 
 	public void createOverride(String name, Path path)
 	{
-		try
-		{
-			createOverride(new TrackOverride(name, path.toString(), ImmutableMap.of()));
-		}
-		catch (Exception e)
-		{
-			log.warn("Something went wrong creating override for " + name + " based on " + path, e);
-		}
+		createOverride(new TrackOverride(name, path.toString(), true, ImmutableMap.of()));
 	}
 
 	public void createOverride(String name, StreamInfoItem streamItem)
@@ -153,7 +137,7 @@ class Tracks
 
 				stream.getAudioStreams().stream()
 					.filter(e -> e.getFormat() == MediaFormat.M4A)
-					.map(e -> new TrackOverride(name, e.getUrl(), ImmutableMap.of(
+					.map(e -> new TrackOverride(name, e.getUrl(), false, ImmutableMap.of(
 						"Url", streamItem.getUrl(),
 						"Name", streamItem.getName(),
 						"Duration", Duration.ofSeconds(streamItem.getDuration()).toString(),
@@ -161,7 +145,6 @@ class Tracks
 						"Uploader url", streamItem.getUploaderUrl()
 					)))
 					.findAny().ifPresent(this::createOverride);
-
 			}
 			catch (Exception e)
 			{
@@ -174,13 +157,13 @@ class Tracks
 	{
 		if (transfer(override))
 		{
-			config.setConfiguration(CONFIG_GROUP, OVERRIDE_CONFIG_KEY_PREFIX + override.getName(), new Gson().toJson(override));
+			config.setConfiguration(CONFIG_GROUP, OVERRIDE_CONFIG_KEY_PREFIX + override.getName(), GSON.toJson(override));
 		}
 	}
 
 	public TrackOverride getOverride(String name)
 	{
-		TrackOverride override = new Gson().fromJson(
+		TrackOverride override = GSON.fromJson(
 			config.getConfiguration(CONFIG_GROUP, OVERRIDE_CONFIG_KEY_PREFIX + name),
 			TrackOverride.class
 		);
@@ -226,21 +209,14 @@ class Tracks
 
 	private boolean transfer(TrackOverride override)
 	{
-		try {
-			Path path = Paths.get(override.getOriginalPath());
-			if (Files.exists(path))
-			{
-				return transferLocal(override, path);
-			}
-		} catch (InvalidPathException e)
-		{
-			log.debug(override + " didn't have a valid Path, perhaps it's a URL?", e);
-		}
-		return transferLink(override);
+		return override.isFromLocal()
+			? transferLocal(override)
+			: transferLink(override);
 	}
 
-	private boolean transferLocal(TrackOverride override, Path path)
+	private boolean transferLocal(TrackOverride override)
 	{
+		Path path = Paths.get(override.getOriginalPath());
 		if (!path.toString().endsWith(".wav"))
 		{
 			log.warn("Can only load .wav files. " + override);
@@ -253,20 +229,23 @@ class Tracks
 			return true;
 		} catch (IOException e)
 		{
-			log.warn("Something went wrong when copying " + override);
+			log.warn("Something went wrong when copying " + override, e);
 			return false;
 		}
 	}
 
 	private boolean transferLink(TrackOverride override)
 	{
-		try
-		{
-			Response response = http.newBuilder().readTimeout(1, TimeUnit.MINUTES).build()
-				.newCall(new Request.Builder()
-				.url("https://4rri42wrbl.execute-api.us-east-1.amazonaws.com/default/convert-to-wav?url=" + URLEncoder.encode(override.getOriginalPath(), StandardCharsets.UTF_8.toString()))
-				.build()
-			).execute();
+		String dlUrl = override.getOriginalPath();
+		String originUrl = override.getAdditionalInfo().getOrDefault("Url", dlUrl);
+		try (Response response = http.newBuilder().readTimeout(1, TimeUnit.MINUTES).build()
+			.newCall(new Request.Builder()
+				.url("https://4rri42wrbl.execute-api.us-east-1.amazonaws.com/default/convert-to-wav?" +
+					"originUrl=" + urlEncode(originUrl) +
+					"&dlUrl=" + urlEncode(dlUrl)
+				).build()
+			).execute()
+		) {
 			if (response.isSuccessful())
 			{
 				String wavUrl = response.body().string();
@@ -276,10 +255,20 @@ class Tracks
 					return true;
 				}
 			}
+			else
+			{
+				log.warn("Something went wrong when downloading wav for " + override + ". " +
+					response.code() + ": " + response.message() + " " + response.body().string());
+			}
 		} catch (IOException e)
 		{
 			log.warn("Something went wrong when downloading wav for " + override, e);
 		}
 		return false;
+	}
+
+	private static String urlEncode(String s) throws UnsupportedEncodingException
+	{
+		return URLEncoder.encode(s, StandardCharsets.UTF_8.toString());
 	}
 }
