@@ -126,6 +126,7 @@ public class MusicReplacerPlugin extends Plugin
 		}
 	}
 
+	private double oldVolume = -1;
 	@Subscribe
 	public void onClientTick(ClientTick tick)
 	{
@@ -146,11 +147,13 @@ public class MusicReplacerPlugin extends Plugin
 				audioCue.releaseInstance(0);
 			}
 		}
-		else if (volume != 0 && client.getVarbitValue(MUSIC_LOOP_STATE_VAR_ID) == 1)
+		else if (volume != 0 && (oldVolume == 0 || client.getVarbitValue(MUSIC_LOOP_STATE_VAR_ID) == 1))
 		{
-			// If song ended (audio cue not active) but we've got LOOP on then restart
+			// Restart song if song ended (audio cue not active) and we've got LOOP on
+			// or when oldVolume was 0 (so switched from off to on)
 			audioCue.play();
 		}
+		oldVolume = volume;
 	}
 
 	@Override
