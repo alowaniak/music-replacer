@@ -48,7 +48,7 @@ import static nl.alowaniak.runelite.musicreplacer.MusicReplacerConfig.CONFIG_GRO
 @Singleton
 class Tracks
 {
-	static final File MUSIC_OVERRIDES_DIR = new File(RuneLite.RUNELITE_DIR, "music-overrides");
+	static final File MUSIC_OVERRIDES_DIR = new File(RuneLite.RUNELITE_DIR, "music-replacer");
 	{ // Not static initializer, if we fail we only want to fail loading our plugin
 		if (!MUSIC_OVERRIDES_DIR.exists() && !MUSIC_OVERRIDES_DIR.mkdirs())
 		{
