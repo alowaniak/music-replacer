@@ -1,13 +1,20 @@
 package nl.alowaniak.runelite.musicreplacer;
 
 import com.google.common.collect.ImmutableMap;
+import lombok.Getter;
+import lombok.extern.slf4j.Slf4j;
+import net.runelite.api.Client;
+import net.runelite.api.EnumID;
+import net.runelite.client.RuneLite;
+import net.runelite.client.config.ConfigManager;
+
+import javax.inject.Inject;
+import javax.inject.Named;
+import javax.inject.Singleton;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
-import java.io.UnsupportedEncodingException;
 import java.net.URL;
-import java.net.URLEncoder;
-import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -18,28 +25,12 @@ import java.util.List;
 import java.util.SortedSet;
 import java.util.TreeSet;
 import java.util.concurrent.ExecutorService;
-import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
-import javax.inject.Inject;
-import javax.inject.Named;
-import javax.inject.Singleton;
-import lombok.Getter;
-import lombok.extern.slf4j.Slf4j;
-import net.runelite.api.Client;
-import net.runelite.api.EnumID;
-import net.runelite.client.RuneLite;
-import net.runelite.client.config.ConfigManager;
-import okhttp3.OkHttpClient;
-import okhttp3.Request;
-import okhttp3.Response;
-import org.schabi.newpipe.extractor.MediaFormat;
-import org.schabi.newpipe.extractor.ServiceList;
-import org.schabi.newpipe.extractor.stream.StreamExtractor;
-import org.schabi.newpipe.extractor.stream.StreamInfoItem;
 
 import static net.runelite.http.api.RuneLiteAPI.GSON;
 import static nl.alowaniak.runelite.musicreplacer.MusicReplacerConfig.CONFIG_GROUP;
+import static nl.alowaniak.runelite.musicreplacer.MusicReplacerPlugin.MUSIC_REPLACER_API;
 
 /**
  * Provides access to all OSRS track names as well as all {@link TrackOverride overridden tracks}.
@@ -60,13 +51,11 @@ class Tracks
 
 	@Inject
 	private Client client;
-	@Inject
-	private OkHttpClient http;
 
 	@Inject
 	private ConfigManager config;
 	@Inject
-	@Named("musicReplacerExecutor")
+	@Named(MusicReplacerPlugin.MUSIC_REPLACER_EXECUTOR)
 	private ExecutorService executor;
 
 	@Getter(lazy=true)
@@ -126,31 +115,18 @@ class Tracks
 		createOverride(new TrackOverride(name, path.toString(), true, ImmutableMap.of()));
 	}
 
-	public void createOverride(String name, StreamInfoItem streamItem)
+	public void createOverride(String trackName, SearchResult hit)
 	{
-		executor.submit(() ->
-		{
-			try
-			{
-				StreamExtractor stream = ServiceList.YouTube.getStreamExtractor(streamItem.getUrl());
-				stream.fetchPage();
-
-				stream.getAudioStreams().stream()
-					.filter(e -> e.getFormat() == MediaFormat.M4A)
-					.map(e -> new TrackOverride(name, e.getUrl(), false, ImmutableMap.of(
-						"Url", streamItem.getUrl(),
-						"Name", streamItem.getName(),
-						"Duration", Duration.ofSeconds(streamItem.getDuration()).toString(),
-						"Uploader", streamItem.getUploaderName(),
-						"Uploader url", streamItem.getUploaderUrl()
-					)))
-					.findAny().ifPresent(this::createOverride);
-			}
-			catch (Exception e)
-			{
-				log.warn("Something went wrong creating override for " + name + " based on " + streamItem, e);
-			}
-		});
+		// TODO kind of misusing originalPath in TrackOverride, should refactor so it's also prettier for track info overlay
+		executor.submit(() -> createOverride(
+			new TrackOverride(trackName, hit.id, false,
+				ImmutableMap.of(
+				"Name", hit.getName(),
+				"Duration", Duration.ofSeconds(hit.getDuration()).toString(),
+				"Uploader", hit.getUploader()
+				)
+			)
+		));
 	}
 
 	private void createOverride(TrackOverride override)
@@ -236,39 +212,16 @@ class Tracks
 
 	private boolean transferLink(TrackOverride override)
 	{
-		String dlUrl = override.getOriginalPath();
-		String originUrl = override.getAdditionalInfo().getOrDefault("Url", dlUrl);
-		try (Response response = http.newBuilder().readTimeout(1, TimeUnit.MINUTES).build()
-			.newCall(new Request.Builder()
-				.url("https://4rri42wrbl.execute-api.us-east-1.amazonaws.com/default/convert-to-wav?" +
-					"originUrl=" + urlEncode(originUrl) +
-					"&dlUrl=" + urlEncode(dlUrl)
-				).build()
-			).execute()
-		) {
-			if (response.isSuccessful())
-			{
-				String wavUrl = response.body().string();
-				try (InputStream is = new URL(wavUrl).openStream())
-				{
-					Files.copy(is, override.getPath(), StandardCopyOption.REPLACE_EXISTING);
-					return true;
-				}
-			}
-			else
-			{
-				log.warn("Something went wrong when downloading wav for " + override + ". " +
-					response.code() + ": " + response.message() + " " + response.body().string());
-			}
-		} catch (IOException e)
+		String dlUrl = MUSIC_REPLACER_API + "download/" + override.getOriginalPath();
+		try (InputStream is = new URL(dlUrl).openStream())
+		{
+			Files.copy(is, override.getPath(), StandardCopyOption.REPLACE_EXISTING);
+			return true;
+		}
+		catch (IOException e)
 		{
 			log.warn("Something went wrong when downloading wav for " + override, e);
+			return false;
 		}
-		return false;
-	}
-
-	private static String urlEncode(String s) throws UnsupportedEncodingException
-	{
-		return URLEncoder.encode(s, StandardCharsets.UTF_8.toString());
 	}
 }

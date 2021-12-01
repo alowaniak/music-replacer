@@ -1,19 +1,7 @@
 package nl.alowaniak.runelite.musicreplacer;
 
 import com.google.common.primitives.Ints;
-import java.nio.file.Paths;
-import java.time.Duration;
-import java.util.Comparator;
-import java.util.Map;
-import java.util.stream.Stream;
-import javax.inject.Inject;
-import javax.inject.Singleton;
-import net.runelite.api.Client;
-import net.runelite.api.FontID;
-import net.runelite.api.MenuAction;
-import net.runelite.api.MenuEntry;
-import net.runelite.api.ScriptID;
-import net.runelite.api.VarClientInt;
+import net.runelite.api.*;
 import net.runelite.api.events.GameTick;
 import net.runelite.api.events.MenuOpened;
 import net.runelite.api.events.MenuOptionClicked;
@@ -31,7 +19,15 @@ import net.runelite.client.ui.overlay.tooltip.Tooltip;
 import net.runelite.client.ui.overlay.tooltip.TooltipManager;
 import net.runelite.client.util.Text;
 import org.apache.commons.lang3.ArrayUtils;
-import org.schabi.newpipe.extractor.stream.StreamInfoItem;
+
+import javax.inject.Inject;
+import javax.inject.Singleton;
+import java.nio.file.Paths;
+import java.time.Duration;
+import java.util.Comparator;
+import java.util.List;
+import java.util.Map;
+import java.util.stream.Stream;
 
 import static nl.alowaniak.runelite.musicreplacer.MusicReplacerConfig.CONFIG_GROUP;
 import static nl.alowaniak.runelite.musicreplacer.MusicReplacerPlugin.CURRENTLY_PLAYING_WIDGET_ID;
@@ -40,6 +36,7 @@ import static nl.alowaniak.runelite.musicreplacer.Tracks.OVERRIDE_CONFIG_KEY_PRE
 @Singleton
 class TracksOverridesUi
 {
+	public static final int PAGE_SIZE = 4;
 	private static final String OVERRIDE_OPTION = "Override";
 	private static final String REMOVE_OVERRIDE_OPTION = "Remove override";
 
@@ -199,27 +196,27 @@ class TracksOverridesUi
 	{
 		chatboxPanelManager.openTextInput("Enter your search criteria for " + trackName)
 				.value(trackName)
-				.onDone((String s) -> showSearchHits(trackName, s))
+				.onDone((String s) -> ytSearcher.search(s, hits -> paginateSearch(trackName, hits)))
 				.build();
 	}
 
-	private void showSearchHits(String trackName, String searchTerm)
+	private void paginateSearch(String trackName, List<SearchResult> hits)
 	{
-		ytSearcher.search(searchTerm, (hits, continueSearch) ->
-		{
-			ChatboxTextMenuInput chooser = chatboxPanelManager.openTextMenuInput("Choose which you want to use as override for " + trackName);
+		ChatboxTextMenuInput chooser = chatboxPanelManager.openTextMenuInput("Choose which you want to use as override for " + trackName);
 
-			for (StreamInfoItem hit : hits)
-			{
-				chooser.option(
-						hit.getName() + " " + Duration.ofSeconds(hit.getDuration()).toString().substring(2) + " " + hit.getUploaderName(),
-						() -> tracks.createOverride(trackName, hit)
-				);
-			}
-			if (continueSearch != null) chooser.option("Continue...", continueSearch);
+		int pageSize = PAGE_SIZE + (PAGE_SIZE + 1 == hits.size() ? 1 : 0);
 
-			chooser.build();
-		});
+		hits.stream().limit(pageSize).forEach(hit ->
+			chooser.option(
+				hit.getName() + " " + Duration.ofSeconds(hit.getDuration()).toString().substring(2) + " " + hit.getUploader(),
+				() -> tracks.createOverride(trackName, hit)
+			)
+		);
+
+		List<SearchResult> remainingHits = hits.subList(Math.min(hits.size(), pageSize), hits.size());
+		if (!remainingHits.isEmpty()) chooser.option("Continue", () -> paginateSearch(trackName, remainingHits));
+
+		chooser.build();
 	}
 
 	private void updateOverridesInTrackList()

@@ -4,10 +4,6 @@ import com.adonax.audiocue.AudioCue;
 import com.google.inject.Binder;
 import com.google.inject.Provides;
 import com.google.inject.name.Names;
-import java.util.Objects;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
-import javax.inject.Inject;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 import net.runelite.api.Client;
@@ -27,15 +23,22 @@ import net.runelite.client.plugins.PluginDescriptor;
 import net.runelite.client.plugins.music.MusicConfig;
 import net.runelite.client.plugins.music.MusicPlugin;
 
+import javax.inject.Inject;
+import java.util.Objects;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+
 @Slf4j
 @PluginDescriptor(
 		name = "Music Replacer",
-		description = "Replace OSRS music tracks with user defined music",
-		tags = {"music", "replace", "track"}
+		description = "Replace music tracks with your own music",
+		tags = {"music", "replace", "track", "beats"}
 )
 @PluginDependency(MusicPlugin.class)
 public class MusicReplacerPlugin extends Plugin
 {
+	public static final String MUSIC_REPLACER_API = "https://alowan.nl/runelite-music-replacer/";
+	public static final String MUSIC_REPLACER_EXECUTOR = "musicReplacerExecutor";
 	public static final int CURRENTLY_PLAYING_WIDGET_ID = 6;
 	private static final int MUSIC_LOOP_STATE_VAR_ID = 4137;
 	public static final double MAX_VOL = 255;
@@ -44,7 +47,7 @@ public class MusicReplacerPlugin extends Plugin
 	public void configure(Binder binder)
 	{
 		// Use our own ExecutorService instead of ScheduledExecutorService because the downloads can take a while
-		binder.bind(ExecutorService.class).annotatedWith(Names.named("musicReplacerExecutor")).toInstance(Executors.newSingleThreadExecutor());
+		binder.bind(ExecutorService.class).annotatedWith(Names.named(MUSIC_REPLACER_EXECUTOR)).toInstance(Executors.newSingleThreadExecutor());
 	}
 
 	@Provides
@@ -149,8 +152,8 @@ public class MusicReplacerPlugin extends Plugin
 		}
 		else if (volume != 0 && (oldVolume == 0 || client.getVarbitValue(MUSIC_LOOP_STATE_VAR_ID) == 1))
 		{
-			// Restart song if song ended (audio cue not active) and we've got LOOP on
-			// or when oldVolume was 0 (so switched from off to on)
+			// If song ended (audio cue not active) we'll want to restart
+			// if we've got LOOP on or when oldVolume was 0 (so switched from off to on)
 			audioCue.play();
 		}
 		oldVolume = volume;

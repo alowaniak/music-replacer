@@ -1,126 +1,66 @@
 package nl.alowaniak.runelite.musicreplacer;
 
-import java.io.IOException;
-import java.util.Collections;
-import java.util.List;
-import java.util.concurrent.ExecutorService;
-import java.util.function.BiConsumer;
-import java.util.stream.Collectors;
-import javax.annotation.Nonnull;
+import com.google.gson.reflect.TypeToken;
+import lombok.extern.slf4j.Slf4j;
+import okhttp3.OkHttpClient;
+import okhttp3.Request;
+import okhttp3.Response;
+
 import javax.inject.Inject;
 import javax.inject.Named;
 import javax.inject.Singleton;
-import lombok.extern.slf4j.Slf4j;
-import okhttp3.OkHttpClient;
-import okhttp3.RequestBody;
-import org.schabi.newpipe.extractor.InfoItem;
-import org.schabi.newpipe.extractor.ListExtractor;
-import org.schabi.newpipe.extractor.NewPipe;
-import org.schabi.newpipe.extractor.ServiceList;
-import org.schabi.newpipe.extractor.downloader.Downloader;
-import org.schabi.newpipe.extractor.downloader.Request;
-import org.schabi.newpipe.extractor.downloader.Response;
-import org.schabi.newpipe.extractor.exceptions.ExtractionException;
-import org.schabi.newpipe.extractor.search.SearchExtractor;
-import org.schabi.newpipe.extractor.stream.StreamInfoItem;
+import java.io.IOException;
+import java.net.URLEncoder;
+import java.nio.charset.StandardCharsets;
+import java.util.Collections;
+import java.util.List;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.TimeUnit;
+import java.util.function.Consumer;
+
+import static net.runelite.http.api.RuneLiteAPI.GSON;
+import static nl.alowaniak.runelite.musicreplacer.MusicReplacerPlugin.MUSIC_REPLACER_API;
 
 @Slf4j
 @Singleton
 class YouTubeSearcher
 {
-	public static final int PAGE_SIZE = 4;
+
 	@Inject
-	@Named("musicReplacerExecutor")
+	private OkHttpClient http;
+	@Inject
+	@Named(MusicReplacerPlugin.MUSIC_REPLACER_EXECUTOR)
 	private ExecutorService executor;
 
-	@Inject
-	public YouTubeSearcher(OkHttpClient http)
-	{
-		NewPipe.init(new Downloader()
-		{
-			@Override
-			public Response execute(@Nonnull Request request) throws IOException
-			{
-				byte[] data = request.dataToSend();
-				okhttp3.Request.Builder reqBuilder = new okhttp3.Request.Builder()
-						.url(request.url())
-						.method(
-								request.httpMethod(),
-								data == null ? null : RequestBody.create(null,  data)
-						);
-				request.headers().forEach((k, v) -> v.forEach(e -> reqBuilder.addHeader(k, e)));
-
-				try (okhttp3.Response res = http.newCall(reqBuilder.build()).execute())
-				{
-					return new Response(res.code(), res.message(), res.headers().toMultimap(), res.body().string(), res.request().url().toString());
-				}
-			}
-		});
-	}
-
 	/**
-	 * Does a (paginated by 4 items) search
-	 *
 	 * @param term the {@code term} to search for.
-	 * @param resultCollector this consumer will be called with the first argument being (at most) 4 search hits.
-	 *                        The second argument (which may be {@code null}: meaning no more search hits)
-	 *                        can be called by the consumer to "continue the search"
-	 *                        in which case this {@code resultCollector} will be called again with the next search hits.
+	 * @param resultCollector will be called with the found results.
 	 */
-	public void search(String term, BiConsumer<List<StreamInfoItem>, Runnable> resultCollector)
+	public void search(String term, Consumer<List<SearchResult>> resultCollector)
 	{
-		executor.submit(() ->
-		{
-			try
-			{
-				SearchExtractor search = ServiceList.YouTube.getSearchExtractor(term);
-
-				search.fetchPage();
-				ListExtractor.InfoItemsPage<InfoItem> page = search.getInitialPage();
-
-				paginateSearch(resultCollector, search, 0, page);
-			}
-			catch (ExtractionException | IOException e)
-			{
-				log.warn("Something went wrong when searching youtube for: " + term, e);
-				resultCollector.accept(Collections.emptyList(), null);
-			}
-		});
+		executor.submit(() -> resultCollector.accept(getSearchResults(term)));
 	}
 
-	private void paginateSearch(BiConsumer<List<StreamInfoItem>, Runnable> resultCollector, SearchExtractor search, int start, ListExtractor.InfoItemsPage<InfoItem> page)
-	{
-		List<StreamInfoItem> hits = page.getItems().stream()
-			.filter(e -> e instanceof StreamInfoItem).map(e -> (StreamInfoItem) e)
-			.filter(e -> e.getDuration() <= 7*60) // filter out longer than 7mins because wav gets too big
-			.collect(Collectors.toList());
+    private List<SearchResult> getSearchResults(String term) {
+        try (Response res = getSearchResponse(term))
+        {
+            if (!res.isSuccessful()) throw new IOException(res.code() + ": " + res.message() + " " + res.body().string());
 
-		resultCollector.accept(
-			hits.subList(Math.min(start, hits.size()), Math.min(start + PAGE_SIZE, hits.size())),
-			() -> executor.submit(() ->
-			{
-				if (start + PAGE_SIZE < hits.size())
-				{
-					paginateSearch(resultCollector, search, start + PAGE_SIZE, page);
-				}
-				else if (page.hasNextPage())
-				{
-					try
-					{
-						ListExtractor.InfoItemsPage<InfoItem> newPage = search.getPage(page.getNextPage());
-						paginateSearch(resultCollector, search, 0, newPage);
-					}
-					catch (IOException | ExtractionException e)
-					{
-						log.warn("Something went wrong when searching next page.", e);
-						resultCollector.accept(Collections.emptyList(), null);
-					}
-				}
-				else
-				{
-					resultCollector.accept(Collections.emptyList(), null);
-				}
-			}
-		));
-	}
+            return GSON.fromJson(res.body().string(), new TypeToken<List<SearchResult>>(){}.getType());
+        }
+        catch (IOException e)
+        {
+            log.warn("Something went wrong when searching for " + term, e);
+            return Collections.emptyList();
+        }
+    }
+
+    private Response getSearchResponse(String term) throws IOException {
+        return http.newBuilder().readTimeout(1, TimeUnit.MINUTES)
+            .build()
+            .newCall(new Request.Builder()
+                .url(MUSIC_REPLACER_API + "search/" + URLEncoder.encode(term, StandardCharsets.UTF_8.toString()))
+                .build()
+            ).execute();
+    }
 }
