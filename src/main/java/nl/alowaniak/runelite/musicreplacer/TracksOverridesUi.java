@@ -4,7 +4,6 @@ import com.google.common.primitives.Ints;
 import net.runelite.api.*;
 import net.runelite.api.events.GameTick;
 import net.runelite.api.events.MenuOpened;
-import net.runelite.api.events.MenuOptionClicked;
 import net.runelite.api.events.VarClientIntChanged;
 import net.runelite.api.widgets.JavaScriptCallback;
 import net.runelite.api.widgets.Widget;
@@ -18,7 +17,6 @@ import net.runelite.client.game.chatbox.ChatboxTextMenuInput;
 import net.runelite.client.ui.overlay.tooltip.Tooltip;
 import net.runelite.client.ui.overlay.tooltip.TooltipManager;
 import net.runelite.client.util.Text;
-import org.apache.commons.lang3.ArrayUtils;
 
 import javax.inject.Inject;
 import javax.inject.Singleton;
@@ -37,11 +35,7 @@ import static nl.alowaniak.runelite.musicreplacer.Tracks.OVERRIDE_CONFIG_KEY_PRE
 class TracksOverridesUi
 {
 	public static final int PAGE_SIZE = 4;
-	private static final String OVERRIDE_OPTION = "Override";
-	private static final String REMOVE_OVERRIDE_OPTION = "Remove override";
 
-	private static final String OVERRIDE_ALL_OPTION = "Override tracks";
-	private static final String REMOVE_ALL_OVERRIDES_OPTION = "Remove overrides";
 	public static final int OVERRIDE_FONT = FontID.BOLD_12;
 	public static final int NORMAL_FONT = FontID.PLAIN_12;
 
@@ -120,69 +114,44 @@ class TracksOverridesUi
 		int widgetId = entry.getParam1();
 		if (widgetId == WidgetInfo.MUSIC_TRACK_LIST.getId())
 		{
-			addMenuEntry(OVERRIDE_OPTION, entry);
-
 			String trackName = Text.removeTags(entry.getTarget());
+			addMenuEntry("Override", entry).onClick(e ->
+				chatboxPanelManager.openTextMenuInput("How would you like to override " + trackName + "?")
+				.option("With a local file.", () -> overrideByLocal(trackName))
+				.option("From a youtube search.", () -> overrideBySearch(trackName))
+				.build()
+			);
+
 			if (tracks.getOverride(trackName) != null)
 			{
-				addMenuEntry(REMOVE_OVERRIDE_OPTION, entry);
+				addMenuEntry("Remove override", entry).onClick(e -> tracks.removeOverride(trackName));
 			}
 		}
 		else if (widgetId == WidgetInfo.FIXED_VIEWPORT_MUSIC_TAB.getId()
 				|| widgetId == WidgetInfo.RESIZABLE_VIEWPORT_MUSIC_TAB.getId())
 		{
-			addMenuEntry(OVERRIDE_ALL_OPTION, entry);
+			addMenuEntry("Override tracks", entry).onClick(e ->
+				chatboxPanelManager.openTextInput("Enter directory with override songs")
+				.onDone(tracks::bulkCreateOverride)
+				.build()
+			);
 
 			if (!tracks.overriddenTracks().isEmpty())
 			{
-				addMenuEntry(REMOVE_ALL_OVERRIDES_OPTION, entry);
+				addMenuEntry("Remove overrides", entry).onClick(e -> tracks.removeAllOverrides());
 			}
 		}
 	}
 
-	private void addMenuEntry(String option, MenuEntry entryForCopy)
+	private MenuEntry addMenuEntry(String option, MenuEntry entryForCopy)
 	{
-		MenuEntry entry = new MenuEntry();
-		entry.setOption(option);
-		entry.setTarget(entryForCopy.getTarget());
-		entry.setType(MenuAction.RUNELITE.getId());
-		entry.setParam0(entryForCopy.getParam0());
-		entry.setParam1(entryForCopy.getParam1());
-		entry.setIdentifier(entryForCopy.getIdentifier());
-		client.setMenuEntries(ArrayUtils.insert(1, client.getMenuEntries(), entry));
-	}
-
-	@Subscribe
-	public void onMenuOptionClicked(final MenuOptionClicked event)
-	{
-		if (event.getMenuAction() != MenuAction.RUNELITE) return;
-
-		String target = Text.removeTags(event.getMenuTarget());
-		String menuOption = event.getMenuOption();
-		if (tracks.exists(target))
-		{
-			if (OVERRIDE_OPTION.equals(menuOption))
-			{
-				chatboxPanelManager.openTextMenuInput("How would you like to override " + target + "?")
-						.option("With a local file.", () -> overrideByLocal(target))
-						.option("From a youtube search.", () -> overrideBySearch(target))
-						.build();
-			}
-			else if (REMOVE_OVERRIDE_OPTION.equals(menuOption))
-			{
-				tracks.removeOverride(target);
-			}
-		}
-		else if (OVERRIDE_ALL_OPTION.equals(menuOption))
-		{
-			chatboxPanelManager.openTextInput("Enter directory with override songs")
-					.onDone(tracks::bulkCreateOverride)
-					.build();
-		}
-		else if (REMOVE_ALL_OVERRIDES_OPTION.equals(menuOption))
-		{
-			tracks.removeAllOverrides();
-		}
+		return client.createMenuEntry(-1)
+			.setOption(option)
+			.setTarget(entryForCopy.getTarget())
+			.setType(MenuAction.RUNELITE)
+			.setParam0(entryForCopy.getParam0())
+			.setParam1(entryForCopy.getParam1())
+			.setIdentifier(entryForCopy.getIdentifier());
 	}
 
 	private void overrideByLocal(String trackName)
