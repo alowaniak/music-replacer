@@ -103,7 +103,7 @@ import static com.adonax.audiocue.AudioCueInstanceEvent.Type.STOP_INSTANCE;
  * @version AudioCue 1.1
  * @see <a href="http://adonax.com/AudioCue">http://adonax.com/AudioCue</a>
  */
-public class AudioCue implements AudioMixerTrack
+public class AudioCue
 {
 	public static final AudioFormat audioFormat =
 		new AudioFormat(AudioFormat.Encoding.PCM_SIGNED,
@@ -1419,19 +1419,16 @@ public class AudioCue implements AudioMixerTrack
 		return sdl;
 	}
 
-	@Override  // AudioMixerTrack interface
 	public boolean isRunning()
 	{
 		return playerRunning;
 	}
 
-	@Override  // AudioMixerTrack interface
 	public void setRunning(boolean bool)
 	{
 		this.playerRunning = bool;
 	}
 
-	@Override  // AudioMixerTrack interface
 	public float[] readTrack() throws IOException
 	{
 		return fillBuffer(readBuffer);

@@ -44,9 +44,9 @@ import javax.sound.sampled.SourceDataLine;
 
 /**
  * {@code AudioMixer} combines the output of members of an
- * {@code AudioMixerTrack} collection into a single
+ * {@code AudioCue} collection into a single
  * {@code SourceDataLine} output line. Classes implementing
- * {@code AudioMixerTrack} can be added and removed from the
+ * {@code AudioCue} can be added and removed from the
  * mix asynchronously, with the operation occurring at the
  * next buffer iteration. Source tracks must provide for the
  * return of an array of sound data frames whose length is
@@ -64,8 +64,8 @@ import javax.sound.sampled.SourceDataLine;
  */
 public class AudioMixer
 {
-	private AudioMixerTrack[] trackCache, mixerTracks;
-	private CopyOnWriteArrayList<AudioMixerTrack> trackManager;
+	private AudioCue[] trackCache, mixerTracks;
+	private CopyOnWriteArrayList<AudioCue> trackManager;
 	private volatile boolean trackCacheUpdated;
 	private int trackCount;
 
@@ -121,7 +121,7 @@ public class AudioMixer
 	 */
 	public AudioMixer(Mixer mixer, int bufferSize, int threadPriority)
 	{
-		trackManager = new CopyOnWriteArrayList<AudioMixerTrack>();
+		trackManager = new CopyOnWriteArrayList<AudioCue>();
 		this.bufferSize = bufferSize;
 		this.readBufferSize = bufferSize * 2;
 		this.sdlByteBufferSize = bufferSize * 4;
@@ -131,7 +131,7 @@ public class AudioMixer
 
 	// reminder: this does NOT update the trackCache!!
 	/**
-	 * Designates an {@code AudioMixerTrack} to be staged
+	 * Designates an {@code AudioCue} to be staged
 	 * for loading to the array of tracks being mixed. If
 	 * the mixer is not running, the track will become
 	 * part of the mix when the (@code AudioMixer} is started.
@@ -139,16 +139,16 @@ public class AudioMixer
 	 * {@code updateTracks} must be executed in order for
 	 * the new track to be added to the mix.
 	 *
-	 * @param track {@code AudioMixerTrack} to be added
+	 * @param track {@code AudioCue} to be added
 	 */
-	public void addTrack(AudioMixerTrack track)
+	public void addTrack(AudioCue track)
 	{
 		trackManager.add(track);
 	}
 
 	// reminder: this does NOT update the trackCache!!
 	/**
-	 * Designates an {@code AudioMixerTrack} to be staged
+	 * Designates an {@code AudioCue} to be staged
 	 * for removal from the array of tracks being mixed. If
 	 * the mixer is not running, the track, if previously
 	 * added, will <em>not</em> be included in the mix
@@ -160,7 +160,7 @@ public class AudioMixer
 	 * @param track
 	 * @throws IllegalThreadStateException
 	 */
-	public void removeTrack(AudioMixerTrack track) throws IllegalThreadStateException
+	public void removeTrack(AudioCue track) throws IllegalThreadStateException
 	{
 		trackManager.remove(track);
 	}
@@ -176,7 +176,7 @@ public class AudioMixer
 	public void updateTracks()
 	{
 		int size = trackManager.size();
-		AudioMixerTrack[] workCopyTracks = new AudioMixerTrack[size];
+		AudioCue[] workCopyTracks = new AudioCue[size];
 		for (int i = 0; i < size; i++)
 		{
 			workCopyTracks[i] = trackManager.get(i);
@@ -191,7 +191,7 @@ public class AudioMixer
 	 * Starts the operation of the {@code AudioMixer}. A running
 	 * {@code AudioMixer} iteratively sums a buffer's worth of
 	 * frames of sound data from a collection of
-	 * {@code AudioMixerTrack}s, and writes the resulting
+	 * {@code AudioCue}s, and writes the resulting
 	 * array to a {@code SourceDataLine}.
 	 *
 	 * @throws IllegalStateException is thrown if the
