@@ -1,30 +1,24 @@
 package nl.alowaniak.runelite.musicreplacer;
 
-import com.adonax.audiocue.AudioCue;
 import com.google.inject.Binder;
 import com.google.inject.Provides;
 import com.google.inject.name.Names;
-import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 import net.runelite.api.Client;
 import net.runelite.api.GameState;
-import net.runelite.api.events.ClientTick;
 import net.runelite.api.events.GameStateChanged;
 import net.runelite.api.events.GameTick;
 import net.runelite.api.widgets.Widget;
 import net.runelite.api.widgets.WidgetID;
-import net.runelite.client.callback.ClientThread;
 import net.runelite.client.config.ConfigManager;
 import net.runelite.client.eventbus.EventBus;
 import net.runelite.client.eventbus.Subscribe;
 import net.runelite.client.plugins.Plugin;
 import net.runelite.client.plugins.PluginDependency;
 import net.runelite.client.plugins.PluginDescriptor;
-import net.runelite.client.plugins.music.MusicConfig;
 import net.runelite.client.plugins.music.MusicPlugin;
 
 import javax.inject.Inject;
-import java.util.Objects;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
@@ -40,8 +34,6 @@ public class MusicReplacerPlugin extends Plugin
 	public static final String MUSIC_REPLACER_API = "https://alowan.nl/runelite-music-replacer/";
 	public static final String MUSIC_REPLACER_EXECUTOR = "musicReplacerExecutor";
 	public static final int CURRENTLY_PLAYING_WIDGET_ID = 6;
-	private static final int MUSIC_LOOP_STATE_VAR_ID = 4137;
-	public static final double MAX_VOL = 255;
 
 	@Override
 	public void configure(Binder binder)
@@ -59,24 +51,20 @@ public class MusicReplacerPlugin extends Plugin
 	@Inject
 	private Client client;
 	@Inject
-	private ClientThread clientThread;
-	@Inject
 	private EventBus eventBus;
-	@Inject
-	private MusicConfig musicConfig;
 
 	@Inject
 	private Tracks tracks;
 	@Inject
+	private MusicPlayer player;
+	@Inject
 	private TracksOverridesUi tracksOverridesUi;
-
-	private AudioCue audioCue;
-	private TrackOverride currentOverride;
 
 	@Override
 	protected void startUp()
 	{
 		eventBus.register(tracksOverridesUi);
+		eventBus.register(player);
 	}
 
 	@Subscribe
@@ -86,11 +74,7 @@ public class MusicReplacerPlugin extends Plugin
 		if (curTrackWidget == null) return;
 
 		String curTrack = curTrackWidget.getText();
-		TrackOverride newOverride = tracks.getOverride(curTrack);
-		if (!Objects.equals(currentOverride, newOverride))
-		{
-			play(newOverride);
-		}
+		player.play(tracks.getOverride(curTrack));
 	}
 
 	@Subscribe
@@ -98,74 +82,16 @@ public class MusicReplacerPlugin extends Plugin
 	{
 		if (gameStateChanged.getGameState() == GameState.LOGIN_SCREEN)
 		{
-			stopPlaying();
+			player.play(null);
 		}
-	}
-
-	@SneakyThrows
-	private void play(TrackOverride newOverride)
-	{
-		stopPlaying();
-		currentOverride = newOverride;
-		if (currentOverride != null)
-		{
-			client.setMusicVolume(0);
-			audioCue = AudioCue.makeStereoCue(newOverride.getPath().toUri().toURL(), 1);
-			audioCue.open();
-			audioCue.play(0);
-		}
-		else
-		{
-			clientThread.invokeLater(() -> client.setMusicVolume(musicConfig.getMusicVolume() - 1));
-		}
-	}
-
-	private void stopPlaying()
-	{
-		if (audioCue != null)
-		{
-			audioCue.close();
-			audioCue = null;
-		}
-	}
-
-	private double oldVolume = -1;
-	@Subscribe
-	public void onClientTick(ClientTick tick)
-	{
-		if (audioCue == null || currentOverride == null) return;
-
-		// Setting the music volume to 0 with invokeLater seems to prevent the original music from coming through
-		// I'm guessing because it depends on "where" in the client loop the vol is 0
-		// And with invokeLater it happens to "overwrite" Music plugin's write at the correct "point" in the client loop
-		clientThread.invokeLater(() -> client.setMusicVolume(0));
-
-		double volume = (musicConfig.getMusicVolume() - 1) / MAX_VOL;
-		if (audioCue.getIsActive(0))
-		{
-			audioCue.setVolume(0, volume);
-			if (volume == 0)
-			{
-				// Mimic osrs behaviour where volume 0 stops track and turning volume up again restarts it
-				audioCue.releaseInstance(0);
-			}
-		}
-		else if (volume != 0 && (oldVolume == 0 || client.getVarbitValue(MUSIC_LOOP_STATE_VAR_ID) == 1))
-		{
-			// If song ended (audio cue not active) we'll want to restart
-			// if we've got LOOP on or when oldVolume was 0 (so switched from off to on)
-			audioCue.play();
-		}
-		oldVolume = volume;
 	}
 
 	@Override
 	protected void shutDown()
 	{
 		eventBus.unregister(tracksOverridesUi);
+		eventBus.unregister(player);
 		tracksOverridesUi.shutdown();
-		stopPlaying();
-		clientThread.invokeLater(() -> client.setMusicVolume(musicConfig.getMusicVolume() - 1));
-		currentOverride = null;
+		player.play(null);
 	}
 }
