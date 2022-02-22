@@ -112,8 +112,17 @@ public class MusicReplacerPlugin extends Plugin
 
 				if (trackToPlay != null)
 				{
-					player = MusicPlayer.create(trackToPlay.getPath().toUri());
-					player.play();
+					try
+					{
+						player = null;
+						player = MusicPlayer.create(trackToPlay.getPath().toUri());
+						player.play();
+					}
+					catch (OutOfMemoryError e)
+					{
+						log.warn("Out of memory when loading " + trackToPlay, e);
+						trackToPlay = null;
+					}
 				}
 
 				applyVolume();
