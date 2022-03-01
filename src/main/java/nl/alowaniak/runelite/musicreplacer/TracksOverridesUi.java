@@ -133,16 +133,16 @@ class TracksOverridesUi
 				|| widgetId == WidgetInfo.RESIZABLE_VIEWPORT_MUSIC_TAB.getId()
 				|| widgetId == RESIZABLE_VIEWPORT_BOTTOM_LINE_MUSIC_TAB_ID)
 		{
+			if (!tracks.overriddenTracks().isEmpty())
+			{
+				addMenuEntry("Remove overrides", entry).onClick(e -> tracks.removeAllOverrides());
+			}
+
 			addMenuEntry("Override tracks", entry).onClick(e ->
 				chatboxPanelManager.openTextInput("Enter directory with override songs")
 				.onDone(tracks::bulkCreateOverride)
 				.build()
 			);
-
-			if (!tracks.overriddenTracks().isEmpty())
-			{
-				addMenuEntry("Remove overrides", entry).onClick(e -> tracks.removeAllOverrides());
-			}
 		}
 	}
 

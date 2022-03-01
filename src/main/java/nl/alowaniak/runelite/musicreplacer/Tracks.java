@@ -48,6 +48,7 @@ class Tracks
 	}
 
 	public static final String OVERRIDE_CONFIG_KEY_PREFIX = "track_";
+	public static final String FULL_OVERRIDE_CONFIG_KEY_PREFIX = CONFIG_GROUP + '.' + OVERRIDE_CONFIG_KEY_PREFIX;
 
 	@Inject
 	private Client client;
@@ -80,8 +81,8 @@ class Tracks
 	public List<String> overriddenTracks()
 	{
 		return config.getConfigurationKeys(CONFIG_GROUP).stream()
-			.filter(e -> e.startsWith(OVERRIDE_CONFIG_KEY_PREFIX))
-			.map(e -> e.replace(OVERRIDE_CONFIG_KEY_PREFIX, ""))
+			.filter(e -> e.startsWith(FULL_OVERRIDE_CONFIG_KEY_PREFIX))
+			.map(e -> e.replace(FULL_OVERRIDE_CONFIG_KEY_PREFIX, ""))
 			.collect(Collectors.toList());
 	}
 
