@@ -1,5 +1,6 @@
 package nl.alowaniak.runelite.musicreplacer;
 
+import com.google.common.primitives.Ints;
 import com.google.inject.Binder;
 import com.google.inject.name.Names;
 import lombok.extern.slf4j.Slf4j;
@@ -158,7 +159,7 @@ public class MusicReplacerPlugin extends Plugin
 		if (player == null)
 		{
 			int volume = (int) ((musicConfig.getMusicVolume() - 1) * multiplier);
-			clientThread.invokeLater(() -> client.setMusicVolume(volume));
+			clientThread.invokeLater(() -> client.setMusicVolume(Ints.constrainToRange(volume, 0, (int) MAX_VOL)));
 		}
 		else
 		{
