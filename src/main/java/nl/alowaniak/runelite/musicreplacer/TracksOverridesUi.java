@@ -39,6 +39,8 @@ class TracksOverridesUi
 	public static final int OVERRIDE_FONT = FontID.BOLD_12;
 	public static final int NORMAL_FONT = FontID.PLAIN_12;
 
+	public static final int RESIZABLE_VIEWPORT_BOTTOM_LINE_MUSIC_TAB_ID = 10747946;
+
 	@Inject
 	private Client client;
 	@Inject
@@ -128,7 +130,8 @@ class TracksOverridesUi
 			}
 		}
 		else if (widgetId == WidgetInfo.FIXED_VIEWPORT_MUSIC_TAB.getId()
-				|| widgetId == WidgetInfo.RESIZABLE_VIEWPORT_MUSIC_TAB.getId())
+				|| widgetId == WidgetInfo.RESIZABLE_VIEWPORT_MUSIC_TAB.getId()
+				|| widgetId == RESIZABLE_VIEWPORT_BOTTOM_LINE_MUSIC_TAB_ID)
 		{
 			addMenuEntry("Override tracks", entry).onClick(e ->
 				chatboxPanelManager.openTextInput("Enter directory with override songs")
