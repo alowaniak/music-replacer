@@ -94,7 +94,7 @@ class TracksOverridesUi
 	@Subscribe
 	public void onVarClientIntChanged(VarClientIntChanged varClientIntChanged)
 	{
-		if (varClientIntChanged.getIndex() == VarClientInt.INVENTORY_TAB.getIndex() && isOnMusicTab())
+		if (varClientIntChanged.getIndex() == VarClientInt.INVENTORY_TAB && isOnMusicTab())
 		{
 			// The widgets could be outdated, just ensure it's updated whenever we go to the music tab
 			// TODO figure out better way of ensuring the tracklist is up to date
