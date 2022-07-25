@@ -148,9 +148,20 @@ class Tracks
 
 	private void createOverride(TrackOverride override)
 	{
-		removeOverride(override.getName());
-		if (transfer(override))
+		Path overridePath = transfer(override);
+		if (overridePath != null)
 		{
+			// Ensure we only keep the current override transferred file
+			override.getPaths()
+					.filter(e -> !e.equals(overridePath))
+					.forEach(path -> {
+						try {
+							Files.deleteIfExists(path);
+						} catch (IOException e) {
+							log.warn("Couldn't delete " + path, e);
+						}
+					});
+
 			configMgr.setConfiguration(CONFIG_GROUP, OVERRIDE_CONFIG_KEY_PREFIX + override.getName(), GSON.toJson(override));
 			musicReplacer.chatMsg(override.isFromLocal()
 							? "Overridden " + override.getName()
@@ -202,14 +213,14 @@ class Tracks
 		});
 	}
 
-	private boolean transfer(TrackOverride override)
+	private Path transfer(TrackOverride override)
 	{
 		return override.isFromLocal()
 			? transferLocal(override)
 			: transferLink(override);
 	}
 
-	private boolean transferLocal(TrackOverride override)
+	private Path transferLocal(TrackOverride override)
 	{
 		Path path = Paths.get(override.getOriginalPath());
 		Path targetPath = override.getPaths()
@@ -219,17 +230,17 @@ class Tracks
 		if (targetPath == null)
 		{
 			log.warn("Can only load " + MusicPlayer.PLAYER_PER_EXT.keySet() + " files. " + override);
-			return false;
+			return null;
 		}
 
 		try
 		{
 			Files.copy(path, targetPath, StandardCopyOption.REPLACE_EXISTING);
-			return true;
+			return targetPath;
 		} catch (IOException e)
 		{
 			log.warn("Something went wrong when copying " + override, e);
-			return false;
+			return null;
 		}
 	}
 
@@ -238,7 +249,7 @@ class Tracks
 		return fileName.substring(fileName.lastIndexOf('.'));
 	}
 
-	private boolean transferLink(TrackOverride override)
+	private Path transferLink(TrackOverride override)
 	{
 		Path targetPath = override.getPaths().findFirst().orElseThrow(IllegalStateException::new);
 
@@ -246,12 +257,12 @@ class Tracks
 		try (InputStream is = new URL(dlUrl).openStream())
 		{
 			Files.copy(is, targetPath, StandardCopyOption.REPLACE_EXISTING);
-			return true;
+			return targetPath;
 		}
 		catch (IOException e)
 		{
 			log.warn("Something went wrong when downloading for " + override, e);
-			return false;
+			return null;
 		}
 	}
 }
