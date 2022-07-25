@@ -1,0 +1,890 @@
+[
+  {
+    "name": "OSRSBeatz",
+    "credits": "Tracks made by OSRSBeatz, show some love on https://www.youtube.com/c/OSRSBeatz",
+    "tracks": {
+      "A Forgotten Religion": {
+        "id": "HCUtGB1wCGM",
+        "name": "Runescape '19 - A Forgotten Religion (Trap Remix)",
+        "duration": 379,
+        "uploader": "OSRSBeatz"
+      },
+      "Adventure": {
+        "id": "NaLu2KzMDNs",
+        "name": "Runescape 07 - Adventure (Trap Remix)",
+        "duration": 141,
+        "uploader": "OSRSBeatz"
+      },
+      "Al Kharid": {
+        "id": "biaclhiZubQ",
+        "name": "Runescape 07 - Al Kharid (Trap Remix) [REVAMPED]",
+        "duration": 218,
+        "uploader": "OSRSBeatz"
+      },
+      "Altar Ego": {
+        "id": "O1AFgrtHeXk",
+        "name": "Runescape '16 - Altar Ego (Trap Remix)",
+        "duration": 306,
+        "uploader": "OSRSBeatz"
+      },
+      "Arabian": {
+        "id": "YljWN23-3Xc",
+        "name": "Runescape 07 - Arabian (Trap Remix)",
+        "duration": 142,
+        "uploader": "OSRSBeatz"
+      },
+      "Arabian 2": {
+        "id": "o8mowlVRtRQ",
+        "name": "Runescape 07 - Arabian2 (Hip-Hop Remix)",
+        "duration": 187,
+        "uploader": "OSRSBeatz"
+      },
+      "Arcane": {
+        "id": "_c63_0egv6g",
+        "name": "Runescape 07 - Arcane (Trap Remix)",
+        "duration": 169,
+        "uploader": "OSRSBeatz"
+      },
+      "Army of Darkness": {
+        "id": "77xo_TOZs8o",
+        "name": "Runescape 07 - Army of Darkness (Trap Remix)",
+        "duration": 159,
+        "uploader": "OSRSBeatz"
+      },
+      "Arrival": {
+        "id": "TTCkD8whbzQ",
+        "name": "Runescape 07 - Arrival (Trap Remix)",
+        "duration": 102,
+        "uploader": "OSRSBeatz"
+      },
+      "Artistry": {
+        "id": "Lh3k-Gvw8Pc",
+        "name": "Runescape 07 - Artistry (Trap Remix)",
+        "duration": 217,
+        "uploader": "OSRSBeatz"
+      },
+      "Attack 2": {
+        "id": "oCovt0hdHZY",
+        "name": "Runescape 07 - Attack 2 (Trap Remix)",
+        "duration": 154,
+        "uploader": "OSRSBeatz"
+      },
+      "Attention": {
+        "id": "gB8NFVc5OtI",
+        "name": "Runescape 07 - Attention (Trap Remix)",
+        "duration": 174,
+        "uploader": "OSRSBeatz"
+      },
+      "Autumn Voyage": {
+        "id": "2C5m--BBbwQ",
+        "name": "Runescape 07 - Autumn Voyage (Trap Remix) [FIXED]",
+        "duration": 121,
+        "uploader": "OSRSBeatz"
+      },
+      "Back to Life": {
+        "id": "PNqdiIrBrfE",
+        "name": "Runescape 07 - Back to Life (Trap Remix)",
+        "duration": 243,
+        "uploader": "OSRSBeatz"
+      },
+      "Background": {
+        "id": "TmadPZLWGbg",
+        "name": "Runescape 07 - Background (House Remix)",
+        "duration": 200,
+        "uploader": "OSRSBeatz"
+      },
+      "Barbarianism": {
+        "id": "gYFye9NYnTI",
+        "name": "Runescape 07 - Barbarianism (Dubstep Remix)",
+        "duration": 186,
+        "uploader": "OSRSBeatz"
+      },
+      "Baroque": {
+        "id": "eGsgUAuHpMY",
+        "name": "Runescape 07 - Baroque (Trap Remix)",
+        "duration": 133,
+        "uploader": "OSRSBeatz"
+      },
+      "Beyond": {
+        "id": "GzuApLA8soM",
+        "name": "Runescape 07 - Beyond (Trap Remix)",
+        "duration": 170,
+        "uploader": "OSRSBeatz"
+      },
+      "Big Chords": {
+        "id": "F0pxphQyZfg",
+        "name": "Runescape 07 - Big Chords (Trap Remix)",
+        "duration": 150,
+        "uploader": "OSRSBeatz"
+      },
+      "Book of Spells": {
+        "id": "J8D2uAowRbM",
+        "name": "Runescape 07 - Book of Spells (Trap Remix)",
+        "duration": 298,
+        "uploader": "OSRSBeatz"
+      },
+      "Breeze": {
+        "id": "vBhsIHcQpmg",
+        "name": "Runescape 07 - Breeze (Trap Remix)",
+        "duration": 213,
+        "uploader": "OSRSBeatz"
+      },
+      "Camelot": {
+        "id": "9IxHbkcc68I",
+        "name": "Runescape 07 - Camelot (Trap Remix)",
+        "duration": 153,
+        "uploader": "OSRSBeatz"
+      },
+      "Cellar Song": {
+        "id": "u3PD2mqRrzw",
+        "name": "Runescape 07 - Cellar Song (Trap Remix)",
+        "duration": 140,
+        "uploader": "OSRSBeatz"
+      },
+      "Clan Wars": {
+        "id": "DbnemB4NBHU",
+        "name": "Runescape 07 - Clan Wars (Trap Remix)",
+        "duration": 344,
+        "uploader": "OSRSBeatz"
+      },
+      "Coil": {
+        "id": "HwmquP5-oko",
+        "name": "Runescape 07 - Coil (Trap Remix)",
+        "duration": 293,
+        "uploader": "OSRSBeatz"
+      },
+      "Corporal Punishment": {
+        "id": "Geeg3f9GEDA",
+        "name": "Runescape 07 - Corporal Punishment (Trap Remix)",
+        "duration": 273,
+        "uploader": "OSRSBeatz"
+      },
+      "Courage": {
+        "id": "gbqQGlYPCd8",
+        "name": "Runescape 07 - Courage (Trap Remix)",
+        "duration": 247,
+        "uploader": "OSRSBeatz"
+      },
+      "Crystal Sword": {
+        "id": "luDBmfGpfxU",
+        "name": "Runescape 07 - Crystal Sword (Hardstyle Remix)",
+        "duration": 140,
+        "uploader": "OSRSBeatz"
+      },
+      "Dangerous": {
+        "id": "-Jp2emSBEDw",
+        "name": "Runescape 07 - Dangerous (Trap Remix)",
+        "duration": 135,
+        "uploader": "OSRSBeatz"
+      },
+      "Dark": {
+        "id": "cxTM-IPkK-Y",
+        "name": "Runescape 07 - Dark (Trap Remix)",
+        "duration": 144,
+        "uploader": "OSRSBeatz"
+      },
+      "Deadlands": {
+        "id": "1-P1kandkMk",
+        "name": "Runescape 07 - Deadlands (??? Remix)",
+        "duration": 270,
+        "uploader": "OSRSBeatz"
+      },
+      "Deep Wildy": {
+        "id": "_chREdCQdkg",
+        "name": "Runescape 07 - Deep Wildy (Drill Remix)",
+        "duration": 155,
+        "uploader": "OSRSBeatz"
+      },
+      "Diango's Little Helpers": {
+        "id": "Ar18s618dZI",
+        "name": "Runescape 07 - Diango's Little Helpers (Trap Remix)",
+        "duration": 213,
+        "uploader": "OSRSBeatz"
+      },
+      "Dogs of War": {
+        "id": "TieJ1Mmk7bo",
+        "name": "Runescape 07 - Dogs of War (Trap Remix)",
+        "duration": 251,
+        "uploader": "OSRSBeatz"
+      },
+      "Doorways": {
+        "id": "_YWcL4TENJg",
+        "name": "Runescape 07 - Doorways (Trap Remix)",
+        "duration": 151,
+        "uploader": "OSRSBeatz"
+      },
+      "Down Below": {
+        "id": "RDdlYKTgX00",
+        "name": "Runescape 07 - Down Below (Trap Remix)",
+        "duration": 181,
+        "uploader": "OSRSBeatz"
+      },
+      "Dream": {
+        "id": "fqX-TQWTQbs",
+        "name": "Runescape 07 - Dream (Trap Remix)",
+        "duration": 159,
+        "uploader": "OSRSBeatz"
+      },
+      "Dwarf Theme": {
+        "id": "TEMsZoodicI",
+        "name": "Runescape 07 - Dwarf Theme (Trap Remix)",
+        "duration": 98,
+        "uploader": "OSRSBeatz"
+      },
+      "Dwarven Domain": {
+        "id": "kKSZlsJlW7g",
+        "name": "Runescape '16 - Dwarven Domain (Trap Remix)",
+        "duration": 167,
+        "uploader": "OSRSBeatz"
+      },
+      "Easter Jig": {
+        "id": "vm1ddgCmGmc",
+        "name": "Runescape 07 - Easter Jig (House Remix)",
+        "duration": 240,
+        "uploader": "OSRSBeatz"
+      },
+      "Egypt": {
+        "id": "n_u2wjYk90Y",
+        "name": "Runescape 07 - Egypt (Trap Remix)",
+        "duration": 210,
+        "uploader": "OSRSBeatz"
+      },
+      "Emperor": {
+        "id": "vKU2VL3WARE",
+        "name": "Runescape 07 - Emperor (Trap Remix)",
+        "duration": 242,
+        "uploader": "OSRSBeatz"
+      },
+      "Evil Bob's Island": {
+        "id": "U6D_20BFUvQ",
+        "name": "Runescape 07 - Evil Bob's Island (Trap Remix)",
+        "duration": 226,
+        "uploader": "OSRSBeatz"
+      },
+      "Expanse": {
+        "id": "mqGm6BIqqB4",
+        "name": "Runescape 07 - Expanse (Trap Remix)",
+        "duration": 174,
+        "uploader": "OSRSBeatz"
+      },
+      "Faerie": {
+        "id": "uRS23nUN-58",
+        "name": "Runescape 07 - Faerie (Trap Remix)",
+        "duration": 173,
+        "uploader": "OSRSBeatz"
+      },
+      "Faithless": {
+        "id": "J2DVWCr0raE",
+        "name": "Runescape 07 - Faithless (Remix)",
+        "duration": 199,
+        "uploader": "OSRSBeatz"
+      },
+      "Fanfare": {
+        "id": "zt1gVGzO_ZM",
+        "name": "Runescape 07 - Fanfare (Trap Remix)",
+        "duration": 122,
+        "uploader": "OSRSBeatz"
+      },
+      "Fenkenstrain's Refrain": {
+        "id": "g1ctn9dxvTk",
+        "name": "Runescape 07 - Fenkenstrain's Refrain (Drill Remix)",
+        "duration": 251,
+        "uploader": "OSRSBeatz"
+      },
+      "Fishing": {
+        "id": "wuPBkAheXAc",
+        "name": "Runescape 07 - Fishing (Trap Remix)",
+        "duration": 191,
+        "uploader": "OSRSBeatz"
+      },
+      "Flute Salad": {
+        "id": "j7ypRHIQOEY",
+        "name": "Runescape 07 - Flute Salad (Trap Remix) [REVAMPED]",
+        "duration": 119,
+        "uploader": "OSRSBeatz"
+      },
+      "Forever": {
+        "id": "7BtZp9rHl2Y",
+        "name": "Runescape 07 - Forever (Trap Remix)",
+        "duration": 226,
+        "uploader": "OSRSBeatz"
+      },
+      "Frogland": {
+        "id": "2BHEjUIVl0g",
+        "name": "Runescape 07 - Frogland (Trap Remix)",
+        "duration": 125,
+        "uploader": "OSRSBeatz"
+      },
+      "Frostbite": {
+        "id": "3PcATI9A_aE",
+        "name": "Runescape 07 - Frostbite (Trap Remix)",
+        "duration": 329,
+        "uploader": "OSRSBeatz"
+      },
+      "Funny Bunnies": {
+        "id": "IJ5uff5lXFw",
+        "name": "Runescape 07 - Funny Bunnies (Trap Remix)",
+        "duration": 218,
+        "uploader": "OSRSBeatz"
+      },
+      "Garden": {
+        "id": "WapJA38tDFw",
+        "name": "Runescape 07 - Garden (Remix)",
+        "duration": 117,
+        "uploader": "OSRSBeatz"
+      },
+      "Gnome Village": {
+        "id": "4GHX6vwFMfA",
+        "name": "Runescape 07 - Gnome Village (Trap Remix)",
+        "duration": 89,
+        "uploader": "OSRSBeatz"
+      },
+      "Goblin Village": {
+        "id": "znM6nArGaug",
+        "name": "Runescape 07 - Goblin Village (Trap Remix)",
+        "duration": 97,
+        "uploader": "OSRSBeatz"
+      },
+      "Greatness": {
+        "id": "lReOJa8UXCE",
+        "name": "Runescape 07 - Greatness (DnB & Trap Remix)",
+        "duration": 224,
+        "uploader": "OSRSBeatz"
+      },
+      "Harmony": {
+        "id": "Pz27s0VyHg8",
+        "name": "Runescape 07 - Harmony (Trap Remix) [REVAMPED]",
+        "duration": 173,
+        "uploader": "OSRSBeatz"
+      },
+      "Harmony 2": {
+        "id": "kG7tlVtlMys",
+        "name": "Runescape 07 - Harmony 2 (Trap Remix)",
+        "duration": 264,
+        "uploader": "OSRSBeatz"
+      },
+      "High Seas": {
+        "id": "x6IoIWbEJeE",
+        "name": "Runescape 07 - High Seas (Trap Remix)",
+        "duration": 279,
+        "uploader": "OSRSBeatz"
+      },
+      "High Spirits": {
+        "id": "7l5FiFt36jo",
+        "name": "Runescape 07 - High Spirits (Trap Remix)",
+        "duration": 223,
+        "uploader": "OSRSBeatz"
+      },
+      "Home Sweet Home": {
+        "id": "xZz6Ih6beWA",
+        "name": "Runescape 07 - Home Sweet Home (Trap Remix)",
+        "duration": 324,
+        "uploader": "OSRSBeatz"
+      },
+      "Horizon": {
+        "id": "r_ms-pajfRM",
+        "name": "Runescape 07 - Horizon (Trap Remix)",
+        "duration": 207,
+        "uploader": "OSRSBeatz"
+      },
+      "Iban": {
+        "id": "r-emAzaWYlY",
+        "name": "Runescape 07 - Iban (Trap Remix)",
+        "duration": 207,
+        "uploader": "OSRSBeatz"
+      },
+      "Ice Melody": {
+        "id": "e4dYRm93OSM",
+        "name": "Runescape 07 - Ice Melody (Trap Remix)",
+        "duration": 137,
+        "uploader": "OSRSBeatz"
+      },
+      "Ice and Fire": {
+        "id": "VNixSh3LI2Y",
+        "name": "Runescape '16 - Ice and Fire (Trap Remix)",
+        "duration": 205,
+        "uploader": "OSRSBeatz"
+      },
+      "In the Pits": {
+        "id": "nlJZZFHdxxc",
+        "name": "Runescape 07 - In the Pits (Trap Remix)",
+        "duration": 246,
+        "uploader": "OSRSBeatz"
+      },
+      "Inferno": {
+        "id": "pOM6xUssUQ4",
+        "name": "Runescape 07 - Inferno (Trap Remix)",
+        "duration": 301,
+        "uploader": "OSRSBeatz"
+      },
+      "Into the Abyss": {
+        "id": "1JpDf_EXleI",
+        "name": "Runescape 07 - Into the Abyss (Trap Remix)",
+        "duration": 273,
+        "uploader": "OSRSBeatz"
+      },
+      "Jungle Bells": {
+        "id": "FtRdNijLPBU",
+        "name": "Runescape 07 - Jungle Bells (Trap Remix)",
+        "duration": 234,
+        "uploader": "OSRSBeatz"
+      },
+      "Knightly": {
+        "id": "EKVhbiL1Rao",
+        "name": "Runescape 07 - Knightly (Trap Remix)",
+        "duration": 153,
+        "uploader": "OSRSBeatz"
+      },
+      "Land of Snow": {
+        "id": "N2Ei18QR6Ps",
+        "name": "Runescape 07 - Land of Snow (Trap Remix)",
+        "duration": 165,
+        "uploader": "OSRSBeatz"
+      },
+      "Legion": {
+        "id": "53xY4qDiJAA",
+        "name": "Runescape 07 - Legion (Trap Remix)",
+        "duration": 252,
+        "uploader": "OSRSBeatz"
+      },
+      "Lightness": {
+        "id": "8K9VV06D8aA",
+        "name": "Runescape 07 - Lightness (Trap Remix)",
+        "duration": 272,
+        "uploader": "OSRSBeatz"
+      },
+      "Lightwalk": {
+        "id": "2brs1Zp52_Q",
+        "name": "Runescape 07 - Lightwalk (Trap Remix)",
+        "duration": 187,
+        "uploader": "OSRSBeatz"
+      },
+      "Long Way Home": {
+        "id": "opJvpJmpUBs",
+        "name": "Runescape 07 - Long Way Home (Trap Remix)",
+        "duration": 120,
+        "uploader": "OSRSBeatz"
+      },
+      "Lullaby": {
+        "id": "TIpTVEgOFDM",
+        "name": "Runescape 07 - Lullaby (Trap Remix)",
+        "duration": 213,
+        "uploader": "OSRSBeatz"
+      },
+      "Magic Dance": {
+        "id": "0rXX0UPOCIk",
+        "name": "Runescape 07 - Magic Dance (Trap Remix)",
+        "duration": 231,
+        "uploader": "OSRSBeatz"
+      },
+      "Mausoleum": {
+        "id": "j11a-3F390Y",
+        "name": "Runescape 07 - Mausoleum (Trap Remix)",
+        "duration": 234,
+        "uploader": "OSRSBeatz"
+      },
+      "Medieval": {
+        "id": "0oCVbNG_AHE",
+        "name": "Runescape 07 - Medieval (Trap Remix)",
+        "duration": 210,
+        "uploader": "OSRSBeatz"
+      },
+      "Mellow": {
+        "id": "oKgUXJxlzts",
+        "name": "Runescape 07 - Mellow (Trap Remix)",
+        "duration": 223,
+        "uploader": "OSRSBeatz"
+      },
+      "Melodrama": {
+        "id": "JDy58juA0CM",
+        "name": "Runescape 07 - Melodrama (Trap Remix)",
+        "duration": 195,
+        "uploader": "OSRSBeatz"
+      },
+      "Miles Away": {
+        "id": "tUk8lZFUvAs",
+        "name": "Runescape 07 - Miles Away (Trap Remix)",
+        "duration": 232,
+        "uploader": "OSRSBeatz"
+      },
+      "Miracle Dance": {
+        "id": "o04GlHdbJ6M",
+        "name": "Runescape 07 - Miracle Dance (Synth Remix)",
+        "duration": 276,
+        "uploader": "OSRSBeatz"
+      },
+      "Monkey Badness": {
+        "id": "yOwt6QSVvqg",
+        "name": "Runescape 07 - Monkey Badness (Trap Remix)",
+        "duration": 191,
+        "uploader": "OSRSBeatz"
+      },
+      "Morytania": {
+        "id": "zCkh8oBb0bc",
+        "name": "Runescape 07 - Morytania (Trap Remix)",
+        "duration": 271,
+        "uploader": "OSRSBeatz"
+      },
+      "Mudskipper Melody": {
+        "id": "nCgMrsNFKJs",
+        "name": "Runescape 07 - Mudskipper Melody (Trap Remix)",
+        "duration": 248,
+        "uploader": "OSRSBeatz"
+      },
+      "Newbie Melody": {
+        "id": "je2TadK9DY0",
+        "name": "Runescape 07 - Newbie Melody (Trap Remix) [REVAMPED]",
+        "duration": 225,
+        "uploader": "OSRSBeatz"
+      },
+      "Nightfall": {
+        "id": "JsprC5Ia8Eo",
+        "name": "Runescape 07 - Nightfall (Trap Remix)",
+        "duration": 238,
+        "uploader": "OSRSBeatz"
+      },
+      "Norse Code": {
+        "id": "t82KgX_22h8",
+        "name": "Runescape 07 - Norse Code (Trap Remix)",
+        "duration": 244,
+        "uploader": "OSRSBeatz"
+      },
+      "Null and Void": {
+        "id": "p2QQUZV_fOo",
+        "name": "Runescape 07 - Null and Void (Trap Remix)",
+        "duration": 219,
+        "uploader": "OSRSBeatz"
+      },
+      "On the Shore": {
+        "id": "fQv_OIIrimU",
+        "name": "Runescape '17 - On the Shore (Trap Remix)",
+        "duration": 303,
+        "uploader": "OSRSBeatz"
+      },
+      "Overture": {
+        "id": "TfMF-EacHVg",
+        "name": "Runescape 07 - Overture (Trap Remix)",
+        "duration": 108,
+        "uploader": "OSRSBeatz"
+      },
+      "Parade": {
+        "id": "swsWvm-N3uA",
+        "name": "Runescape 07 - Parade (Trap Remix)",
+        "duration": 96,
+        "uploader": "OSRSBeatz"
+      },
+      "Pest Control": {
+        "id": "zFvYtWpESxI",
+        "name": "Runescape 07 - Pest Control (Trap Remix)",
+        "duration": 265,
+        "uploader": "OSRSBeatz"
+      },
+      "Pheasant Peasant": {
+        "id": "GmL-ZzQxtAE",
+        "name": "Runescape 07 - Pheasant Peasant (Trap Remix)",
+        "duration": 232,
+        "uploader": "OSRSBeatz"
+      },
+      "Pick & Shovel": {
+        "id": "jUuPhU7FkWg",
+        "name": "Runescape 07 - Pick & Shovel (Trap Remix)",
+        "duration": 195,
+        "uploader": "OSRSBeatz"
+      },
+      "Pinball Wizard": {
+        "id": "8JeOgd4qRV4",
+        "name": "Runescape 07 - Pinball Wizard (Trap Remix)",
+        "duration": 251,
+        "uploader": "OSRSBeatz"
+      },
+      "Principality": {
+        "id": "BGIYgDGYqjI",
+        "name": "Runescape 07 - Principality (Trap Remix)",
+        "duration": 272,
+        "uploader": "OSRSBeatz"
+      },
+      "Rellekka": {
+        "id": "1DQULOO5Fug",
+        "name": "Runescape 07 - Rellekka (Trap Remix)",
+        "duration": 280,
+        "uploader": "OSRSBeatz"
+      },
+      "Rune Essence": {
+        "id": "NStanVwS-UU",
+        "name": "Runescape 07 - Rune Essence (Trap Remix)",
+        "duration": 122,
+        "uploader": "OSRSBeatz"
+      },
+      "Sad Meadow": {
+        "id": "ZrAWUqANIzo",
+        "name": "Runescape 07 - Sad Meadow (Trap Remix)",
+        "duration": 221,
+        "uploader": "OSRSBeatz"
+      },
+      "Scape Cave": {
+        "id": "vmrXo1FywGA",
+        "name": "Runescape 07 - Scape Cave (Trap Remix)",
+        "duration": 160,
+        "uploader": "OSRSBeatz"
+      },
+      "Scape Main": {
+        "id": "80TcvmFp-5w",
+        "name": "Runescape 07 - Scape Main (Trap Remix)",
+        "duration": 201,
+        "uploader": "OSRSBeatz"
+      },
+      "Scape Original": {
+        "id": "vFtJiUO1WUM",
+        "name": "Runescape 04 - Scape Original (Remix)",
+        "duration": 191,
+        "uploader": "OSRSBeatz"
+      },
+      "Scape Sad": {
+        "id": "wR-p1L7q1CA",
+        "name": "Runescape 07 - Scape Sad (Trap Remix)",
+        "duration": 175,
+        "uploader": "OSRSBeatz"
+      },
+      "Scape Santa": {
+        "id": "H21PEa5WHpM",
+        "name": "Runescape 07 - Scape Santa (Trap Remix)",
+        "duration": 251,
+        "uploader": "OSRSBeatz"
+      },
+      "Scape Scared": {
+        "id": "ul20N3LuPkA",
+        "name": "Runescape 07 - Scape Scared (Trap Remix)",
+        "duration": 155,
+        "uploader": "OSRSBeatz"
+      },
+      "Scape Soft": {
+        "id": "XuPyzvp9dKQ",
+        "name": "Runescape 07 - Scape Soft (Trap Remix)",
+        "duration": 164,
+        "uploader": "OSRSBeatz"
+      },
+      "Scrubfoot's Descent": {
+        "id": "3ADVy1l4OnA",
+        "name": "Runescape '20 - Scrubfoot's Descent (Trap Remix)",
+        "duration": 226,
+        "uploader": "OSRSBeatz"
+      },
+      "Sea Minor Shanty": {
+        "id": "nYJ0Pm4Xemw",
+        "name": "Runescape '20 - Sea Minor Shanty (Trap Remix)",
+        "duration": 113,
+        "uploader": "OSRSBeatz"
+      },
+      "Sea Shanty": {
+        "id": "U4qPQneh6Bg",
+        "name": "Runescape 07 - Sea Shanty (Trap Remix)",
+        "duration": 114,
+        "uploader": "OSRSBeatz"
+      },
+      "Sea Shanty 2": {
+        "id": "bfcZacwnVCk",
+        "name": "Runescape 07 - Sea Shanty 2 (Trap Remix)",
+        "duration": 111,
+        "uploader": "OSRSBeatz"
+      },
+      "Shine": {
+        "id": "Q6rwk8Fx1BM",
+        "name": "Runescape 07 - Shine (Trap Remix)",
+        "duration": 127,
+        "uploader": "OSRSBeatz"
+      },
+      "Shining": {
+        "id": "GywLw5xiBcw",
+        "name": "Runescape 07 - Shining (Trap Remix)",
+        "duration": 282,
+        "uploader": "OSRSBeatz"
+      },
+      "Song of the Elves": {
+        "id": "-WKkYhi6Aa8",
+        "name": "Runescape '19 - Song of the Elves (Trap Remix)",
+        "duration": 343,
+        "uploader": "OSRSBeatz"
+      },
+      "Soundscape": {
+        "id": "f3S5dmfHr2g",
+        "name": "Runescape 07 - Soundscape (Trap Remix)",
+        "duration": 207,
+        "uploader": "OSRSBeatz"
+      },
+      "Spirit": {
+        "id": "snkw5tls0Gc",
+        "name": "Runescape 07 - Spirit (Trap & DnB Remix)",
+        "duration": 157,
+        "uploader": "OSRSBeatz"
+      },
+      "Splendour": {
+        "id": "WAU_IBp_2Yc",
+        "name": "Runescape 07 - Splendour (Trap Remix)",
+        "duration": 224,
+        "uploader": "OSRSBeatz"
+      },
+      "Spooky": {
+        "id": "SpbvGISh_s0",
+        "name": "Runescape 07 - Spooky (Trap Remix)",
+        "duration": 231,
+        "uploader": "OSRSBeatz"
+      },
+      "Start": {
+        "id": "yJnBmimPmI8",
+        "name": "Runescape 07 - Start (Trap Remix)",
+        "duration": 167,
+        "uploader": "OSRSBeatz"
+      },
+      "Still Night": {
+        "id": "ilPO1kk5QVI",
+        "name": "Runescape 07 - Still Night (Synthwave/Trap Remix)",
+        "duration": 180,
+        "uploader": "OSRSBeatz"
+      },
+      "Storm Brew": {
+        "id": "Ta_RNMOQ-b8",
+        "name": "Runescape 07 - Storm Brew (Trap Remix)",
+        "duration": 177,
+        "uploader": "OSRSBeatz"
+      },
+      "Stranded": {
+        "id": "djUaT8Th1jU",
+        "name": "Runescape 07 - Stranded (Trap Remix)",
+        "duration": 299,
+        "uploader": "OSRSBeatz"
+      },
+      "Stratosphere": {
+        "id": "1hIKcnnTUKE",
+        "name": "Runescape 07 - Stratosphere (House Remix)",
+        "duration": 214,
+        "uploader": "OSRSBeatz"
+      },
+      "Talking Forest": {
+        "id": "j-giqX2UPJ0",
+        "name": "Runescape 07 - Talking Forest (Trap Remix)",
+        "duration": 156,
+        "uploader": "OSRSBeatz"
+      },
+      "Tempor of the Storm": {
+        "id": "9Ubt4chV9rQ",
+        "name": "Runescape '21 - Tempor of the Storm (Trap Remix)",
+        "duration": 382,
+        "uploader": "OSRSBeatz"
+      },
+      "The Adventurer": {
+        "id": "OdrmNVDhzR4",
+        "name": "Runescape 08 - The Adventurer (Trap Remix)",
+        "duration": 281,
+        "uploader": "OSRSBeatz"
+      },
+      "The Forlorn Homestead": {
+        "id": "ovEMuHfsxMY",
+        "name": "Runescape 07 - The Forlorn Homestead (Trap Remix)",
+        "duration": 363,
+        "uploader": "OSRSBeatz"
+      },
+      "The Militia": {
+        "id": "X2aXhrmfCC4",
+        "name": "Runescape '16 - The Militia (Trap Remix)",
+        "duration": 229,
+        "uploader": "OSRSBeatz"
+      },
+      "The Navigator": {
+        "id": "b7LHW9XqhS0",
+        "name": "Runescape 07 - The Navigator (Trap Remix)",
+        "duration": 340,
+        "uploader": "OSRSBeatz"
+      },
+      "The Trade Parade": {
+        "id": "X2oKi4Ja0TI",
+        "name": "Runescape 07 - Trade Parade (Trap Remix)",
+        "duration": 181,
+        "uploader": "OSRSBeatz"
+      },
+      "Tomorrow": {
+        "id": "-piSqZMCZAA",
+        "name": "Runescape 07 - Tomorrow (Trap Remix)",
+        "duration": 161,
+        "uploader": "OSRSBeatz"
+      },
+      "Unknown Land": {
+        "id": "PrunvKvU8fc",
+        "name": "Runescape 07 - Unknown Land (Trap Remix)",
+        "duration": 127,
+        "uploader": "OSRSBeatz"
+      },
+      "Venture": {
+        "id": "LflzPPpn22o",
+        "name": "Runescape 07 - Venture (Trap Remix)",
+        "duration": 116,
+        "uploader": "OSRSBeatz"
+      },
+      "Vision": {
+        "id": "WnjOuXoBGhE",
+        "name": "Runescape 07 - Vision (Trap Remix)",
+        "duration": 173,
+        "uploader": "OSRSBeatz"
+      },
+      "Voyage": {
+        "id": "kzLGk95PwsI",
+        "name": "Runescape 07 - Voyage (Trap Remix)",
+        "duration": 181,
+        "uploader": "OSRSBeatz"
+      },
+      "Wander": {
+        "id": "vnKPP1K6zO4",
+        "name": "Runescape 07 - Wander (Trap Remix)",
+        "duration": 210,
+        "uploader": "OSRSBeatz"
+      },
+      "Warriors' Guild": {
+        "id": "x3IwgMDLBu0",
+        "name": "Runescape 07 - Warriors' Guild (Trap Remix)",
+        "duration": 191,
+        "uploader": "OSRSBeatz"
+      },
+      "Waterfall": {
+        "id": "0Yis4MIRsrQ",
+        "name": "Runescape 07 - Waterfall (Trap Remix)",
+        "duration": 142,
+        "uploader": "OSRSBeatz"
+      },
+      "Wilderness": {
+        "id": "Mc6b3RiuTew",
+        "name": "Runescape 07 - Wilderness (Trap Remix)",
+        "duration": 217,
+        "uploader": "OSRSBeatz"
+      },
+      "Wilderness 2": {
+        "id": "C2TpgE7wGTY",
+        "name": "Runescape 07 - Wilderness 2 (Trap Remix)",
+        "duration": 184,
+        "uploader": "OSRSBeatz"
+      },
+      "Wildwood": {
+        "id": "1KDdeviS2YE",
+        "name": "Runescape 07 - Wildwood (Trap Remix)",
+        "duration": 209,
+        "uploader": "OSRSBeatz"
+      },
+      "Workshop": {
+        "id": "i5Gc_i3uK2Q",
+        "name": "Runescape 07 - Workshop (Trap Remix)",
+        "duration": 253,
+        "uploader": "OSRSBeatz"
+      },
+      "Xenophobe": {
+        "id": "X2wTKgkbzg0",
+        "name": "Runescape 07 - Xenophobe (Trap Remix)",
+        "duration": 177,
+        "uploader": "OSRSBeatz"
+      },
+      "Yesteryear": {
+        "id": "WFXq4fLG4pc",
+        "name": "Runescape 07 - Yesteryear (Trap Remix)",
+        "duration": 241,
+        "uploader": "OSRSBeatz"
+      }
+    }
+  }
+]

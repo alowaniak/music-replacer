@@ -1,6 +1,7 @@
 package nl.alowaniak.runelite.musicreplacer;
 
 import com.google.common.primitives.Ints;
+import lombok.extern.slf4j.Slf4j;
 import net.runelite.api.*;
 import net.runelite.api.events.GameTick;
 import net.runelite.api.events.MenuOpened;
@@ -20,17 +21,23 @@ import net.runelite.client.util.Text;
 
 import javax.inject.Inject;
 import javax.inject.Singleton;
-import java.nio.file.Paths;
+import javax.swing.*;
+import javax.swing.filechooser.FileFilter;
+import java.io.File;
+import java.io.IOException;
+import java.io.InputStreamReader;
 import java.time.Duration;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Stream;
 
+import static net.runelite.http.api.RuneLiteAPI.GSON;
 import static nl.alowaniak.runelite.musicreplacer.MusicReplacerConfig.CONFIG_GROUP;
 import static nl.alowaniak.runelite.musicreplacer.MusicReplacerPlugin.CURRENTLY_PLAYING_WIDGET_ID;
 import static nl.alowaniak.runelite.musicreplacer.Tracks.OVERRIDE_CONFIG_KEY_PREFIX;
 
+@Slf4j
 @Singleton
 class TracksOverridesUi
 {
@@ -104,7 +111,7 @@ class TracksOverridesUi
 
 	private boolean isOnMusicTab()
 	{
-		return client.getVar(VarClientInt.INVENTORY_TAB) == 13;
+		return client.getVarcIntValue(VarClientInt.INVENTORY_TAB) == 13;
 	}
 
 	@Subscribe
@@ -139,12 +146,34 @@ class TracksOverridesUi
 			}
 
 			addMenuEntry("Override tracks", entry).onClick(e ->
-				chatboxPanelManager.openTextInput("Enter directory with override songs")
-				.onDone(tracks::bulkCreateOverride)
-				.build()
+				chatboxPanelManager.openTextMenuInput("How would you like to bulk override?")
+						.option("From preset", choosePresetForBulkOverride)
+						.option("From directory", () -> SwingUtilities.invokeLater(chooseDirectoryForBulkOverride))
+						.build()
 			);
 		}
 	}
+
+	private final Runnable choosePresetForBulkOverride =  () -> {
+		try (InputStreamReader reader = new InputStreamReader(getClass().getResourceAsStream("/presets.json"))) {
+			ChatboxTextMenuInput input = chatboxPanelManager.openTextMenuInput("Which preset? (This will download ALL overridden tracks!)");
+			List<Preset> presets = GSON.fromJson(reader, Preset.LIST_TYPE.getType());
+			presets.forEach(preset -> input.option(preset.getName(), () -> tracks.bulkCreateOverride(preset)));
+			input.build();
+		} catch (NullPointerException | IOException ex) {
+			log.warn("Something went wrong when reading presets.", ex);
+		}
+	};
+
+	private final Runnable chooseDirectoryForBulkOverride = () -> {
+		JFileChooser fileChooser = new JFileChooser();
+		fileChooser.setFileSelectionMode(JFileChooser.DIRECTORIES_ONLY);
+		fileChooser.setMultiSelectionEnabled(false);
+		int status = fileChooser.showOpenDialog(client.getCanvas());
+		if (status == JFileChooser.APPROVE_OPTION) {
+			tracks.bulkCreateOverride(fileChooser.getSelectedFile().toPath());
+		}
+	};
 
 	private MenuEntry addMenuEntry(String option, MenuEntry entryForCopy)
 	{
@@ -159,9 +188,26 @@ class TracksOverridesUi
 
 	private void overrideByLocal(String trackName)
 	{
-		chatboxPanelManager.openTextInput("Enter path to override " + trackName)
-				.onDone((String s) -> tracks.createOverride(trackName, Paths.get(s)))
-				.build();
+		SwingUtilities.invokeLater(() -> {
+			JFileChooser fileChooser = new JFileChooser();
+			fileChooser.setFileSelectionMode(JFileChooser.FILES_ONLY);
+			fileChooser.setMultiSelectionEnabled(false);
+			fileChooser.setFileFilter(new FileFilter() {
+				@Override
+				public boolean accept(File f) {
+					return f.isDirectory() || MusicPlayer.PLAYER_PER_EXT.keySet().stream().anyMatch(ext -> f.getName().endsWith(ext));
+				}
+
+				@Override
+				public String getDescription() {
+					return "Supported audio files";
+				}
+			});
+			int status = fileChooser.showOpenDialog(client.getCanvas());
+			if (status == JFileChooser.APPROVE_OPTION) {
+				tracks.createOverride(trackName, fileChooser.getSelectedFile().toPath());
+			}
+		});
 	}
 
 	private void overrideBySearch(String trackName)

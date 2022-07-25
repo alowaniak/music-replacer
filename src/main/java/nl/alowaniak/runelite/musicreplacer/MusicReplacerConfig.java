@@ -2,6 +2,7 @@ package nl.alowaniak.runelite.musicreplacer;
 
 import net.runelite.client.config.Config;
 import net.runelite.client.config.ConfigGroup;
+import net.runelite.client.config.ConfigItem;
 
 import static nl.alowaniak.runelite.musicreplacer.MusicReplacerConfig.CONFIG_GROUP;
 
@@ -9,4 +10,14 @@ import static nl.alowaniak.runelite.musicreplacer.MusicReplacerConfig.CONFIG_GRO
 public interface MusicReplacerConfig extends Config
 {
 	String CONFIG_GROUP = "musicreplacer";
+	@ConfigItem(
+			keyName = "skipAlreadyOverriddenWhenBulkOverride",
+			name = "Skip overridden if bulk",
+			description = "When on this will skip any already overridden tracks when doing a bulk override. " +
+					"If off the bulk override will replace already overridden tracks (if said track is in the bulk)."
+	)
+	default boolean skipAlreadyOverriddenWhenBulkOverride()
+	{
+		return true;
+	}
 }

@@ -1,6 +1,5 @@
 package nl.alowaniak.runelite.musicreplacer;
 
-import com.google.gson.reflect.TypeToken;
 import lombok.extern.slf4j.Slf4j;
 import okhttp3.OkHttpClient;
 import okhttp3.Request;
@@ -26,7 +25,7 @@ import static nl.alowaniak.runelite.musicreplacer.MusicReplacerPlugin.MUSIC_REPL
 class YouTubeSearcher
 {
 
-	@Inject
+    @Inject
 	private OkHttpClient http;
 	@Inject
 	@Named(MusicReplacerPlugin.MUSIC_REPLACER_EXECUTOR)
@@ -46,7 +45,7 @@ class YouTubeSearcher
         {
             if (!res.isSuccessful()) throw new IOException(res.code() + ": " + res.message() + " " + res.body().string());
 
-            return GSON.fromJson(res.body().string(), new TypeToken<List<SearchResult>>(){}.getType());
+            return GSON.fromJson(res.body().string(), SearchResult.LIST_TYPE.getType());
         }
         catch (IOException e)
         {

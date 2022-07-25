@@ -2,6 +2,7 @@ package nl.alowaniak.runelite.musicreplacer;
 
 import com.google.common.collect.ImmutableMap;
 import lombok.Getter;
+import lombok.Value;
 import lombok.extern.slf4j.Slf4j;
 import net.runelite.api.Client;
 import net.runelite.api.EnumID;
@@ -54,7 +55,11 @@ class Tracks
 	private Client client;
 
 	@Inject
-	private ConfigManager config;
+	private ConfigManager configMgr;
+	@Inject
+	private MusicReplacerConfig config;
+	@Inject
+	private MusicReplacerPlugin musicReplacer;
 	@Inject
 	@Named(MusicReplacerPlugin.MUSIC_REPLACER_EXECUTOR)
 	private ExecutorService executor;
@@ -63,24 +68,16 @@ class Tracks
 	private final SortedSet<String> trackNames = new TreeSet<>(Arrays.asList(client.getEnum(EnumID.MUSIC_TRACK_NAMES).getStringVals()));
 
 	/**
-	 * @return whether or not given {@code name} exists as a track.
-	 */
-	public boolean exists(String name)
-	{
-		return getTrackNames().contains(name);
-	}
-
-	/**
 	 * @return whether or not given {@code name} exists as a {@link TrackOverride}
 	 */
 	public boolean overrideExists(String name)
 	{
-		return config.getConfiguration(CONFIG_GROUP, OVERRIDE_CONFIG_KEY_PREFIX + name) != null;
+		return configMgr.getConfiguration(CONFIG_GROUP, OVERRIDE_CONFIG_KEY_PREFIX + name) != null;
 	}
 
 	public List<String> overriddenTracks()
 	{
-		return config.getConfigurationKeys(CONFIG_GROUP).stream()
+		return configMgr.getConfigurationKeys(CONFIG_GROUP).stream()
 			.filter(e -> e.startsWith(FULL_OVERRIDE_CONFIG_KEY_PREFIX))
 			.map(e -> e.replace(FULL_OVERRIDE_CONFIG_KEY_PREFIX, ""))
 			.collect(Collectors.toList());
@@ -89,15 +86,25 @@ class Tracks
 	/**
 	 * Bulk creates overrides assuming {@code dir} contains audio files with exact same names as tracks
 	 */
-	public void bulkCreateOverride(String dir)
+	public void bulkCreateOverride(Path dirPath)
 	{
+        @Value class PathAndFilename {
+			Path path;
+			@Getter(lazy = true) String filename = path.getFileName().toString().replaceAll("\\..+$", "");
+		}
 		executor.submit(() ->
 		{
-			Path dirPath = Paths.get(dir);
 			try (Stream<Path> ls = Files.list(dirPath))
 			{
-				ls.filter(e -> getTrackNames().contains(fileName(e)))
-					.forEach(e -> createOverride(fileName(e), e));
+				ls.map(e -> new PathAndFilename(e))
+						.filter(e -> getTrackNames().contains(e.getFilename()))
+						.forEach(e -> {
+							if (!config.skipAlreadyOverriddenWhenBulkOverride() || !overrideExists(e.getFilename())) {
+								createOverride(e.getFilename(), e.getPath());
+							} else {
+								musicReplacer.chatMsg("Skipping " + e.getFilename() + ", already overridden.");
+							}
+						});
 			}
 			catch (IOException e)
 			{
@@ -106,19 +113,28 @@ class Tracks
 		});
 	}
 
-	private static String fileName(Path path)
-	{
-		return path.getFileName().toString().replaceAll("\\..+$", "");
-	}
-
-	public void createOverride(String name, Path path)
+    public void createOverride(String name, Path path)
 	{
 		createOverride(new TrackOverride(name, path.toString(), true, ImmutableMap.of()));
 	}
 
+	public void bulkCreateOverride(Preset preset) {
+		musicReplacer.chatMsg(
+				"Downloading " + preset.getTracks().size() + " tracks, won't dl all if RL closes prematurely.",
+				preset.getCredits()
+		);
+		preset.getTracks().forEach((name, override) -> {
+			if (!config.skipAlreadyOverriddenWhenBulkOverride() || !overrideExists(name)) {
+				createOverride(name, override);
+			} else {
+				musicReplacer.chatMsg("Skipping " + name + ", already overridden.");
+			}
+		});
+		executor.submit(() -> musicReplacer.chatMsg("Finished downloading preset " + preset.getName() + "."));
+	}
+
 	public void createOverride(String trackName, SearchResult hit)
 	{
-		// TODO kind of misusing originalPath in TrackOverride, should refactor so it's also prettier for track info overlay
 		executor.submit(() -> createOverride(
 			new TrackOverride(trackName, hit.id, false,
 				ImmutableMap.of(
@@ -132,27 +148,34 @@ class Tracks
 
 	private void createOverride(TrackOverride override)
 	{
+		removeOverride(override.getName());
 		if (transfer(override))
 		{
-			config.setConfiguration(CONFIG_GROUP, OVERRIDE_CONFIG_KEY_PREFIX + override.getName(), GSON.toJson(override));
+			configMgr.setConfiguration(CONFIG_GROUP, OVERRIDE_CONFIG_KEY_PREFIX + override.getName(), GSON.toJson(override));
+			musicReplacer.chatMsg(override.isFromLocal()
+							? "Overridden " + override.getName()
+							: "Overridden " + override.getName() + ", credits to " + override.getAdditionalInfo().get("Uploader")
+			);
+		} else {
+			musicReplacer.chatMsg("Failed to override " + override.getName() + ", check the logs.");
 		}
 	}
 
 	public TrackOverride getOverride(String name)
 	{
 		TrackOverride override = GSON.fromJson(
-			config.getConfiguration(CONFIG_GROUP, OVERRIDE_CONFIG_KEY_PREFIX + name),
+			configMgr.getConfiguration(CONFIG_GROUP, OVERRIDE_CONFIG_KEY_PREFIX + name),
 			TrackOverride.class
 		);
 
-		if (override == null || Files.exists(override.getPath()))
+		if (override == null || override.getPaths().anyMatch(Files::exists))
 		{
 			return override;
 		}
 		else
 		{
 			log.warn("Deleting: " + override + " because there was no override file for it.");
-			config.unsetConfiguration(CONFIG_GROUP, OVERRIDE_CONFIG_KEY_PREFIX + name);
+			configMgr.unsetConfiguration(CONFIG_GROUP, OVERRIDE_CONFIG_KEY_PREFIX + name);
 			return null;
 		}
 	}
@@ -162,23 +185,18 @@ class Tracks
 	 */
 	public void removeAllOverrides()
 	{
-		overriddenTracks().forEach(this::removeOverride);
+		executor.submit(() -> overriddenTracks().forEach(this::removeOverride));
 	}
 
-	public void removeOverride(String name)
-	{
+	public void removeOverride(String name) {
 		TrackOverride override = getOverride(name);
 		if (override == null) return;
 
-		executor.submit(() ->
-		{
-			config.unsetConfiguration(CONFIG_GROUP, OVERRIDE_CONFIG_KEY_PREFIX + name);
-			try
-			{
-				Files.deleteIfExists(override.getPath());
-			}
-			catch (IOException e)
-			{
+		configMgr.unsetConfiguration(CONFIG_GROUP, OVERRIDE_CONFIG_KEY_PREFIX + name);
+		override.getPaths().forEach(overridePath -> {
+			try {
+				Files.deleteIfExists(overridePath);
+			} catch (IOException e) {
 				log.warn("Couldn't delete " + name, e);
 			}
 		});
@@ -194,15 +212,19 @@ class Tracks
 	private boolean transferLocal(TrackOverride override)
 	{
 		Path path = Paths.get(override.getOriginalPath());
-		if (!path.toString().endsWith(".wav"))
+		Path targetPath = override.getPaths()
+				.filter(e -> extensionOf(path).equals(extensionOf(e)))
+				.findFirst().orElse(null);
+
+		if (targetPath == null)
 		{
-			log.warn("Can only load .wav files. " + override);
+			log.warn("Can only load " + MusicPlayer.PLAYER_PER_EXT.keySet() + " files. " + override);
 			return false;
 		}
 
 		try
 		{
-			Files.copy(path, override.getPath(), StandardCopyOption.REPLACE_EXISTING);
+			Files.copy(path, targetPath, StandardCopyOption.REPLACE_EXISTING);
 			return true;
 		} catch (IOException e)
 		{
@@ -211,17 +233,24 @@ class Tracks
 		}
 	}
 
+	private String extensionOf(Path p) {
+		String fileName = p.getFileName().toString();
+		return fileName.substring(fileName.lastIndexOf('.'));
+	}
+
 	private boolean transferLink(TrackOverride override)
 	{
-		String dlUrl = MUSIC_REPLACER_API + "download/" + override.getOriginalPath();
+		Path targetPath = override.getPaths().findFirst().orElseThrow(IllegalStateException::new);
+
+		String dlUrl = MUSIC_REPLACER_API + "download/" + override.getOriginalPath() + "?ext=" + extensionOf(targetPath);
 		try (InputStream is = new URL(dlUrl).openStream())
 		{
-			Files.copy(is, override.getPath(), StandardCopyOption.REPLACE_EXISTING);
+			Files.copy(is, targetPath, StandardCopyOption.REPLACE_EXISTING);
 			return true;
 		}
 		catch (IOException e)
 		{
-			log.warn("Something went wrong when downloading wav for " + override, e);
+			log.warn("Something went wrong when downloading for " + override, e);
 			return false;
 		}
 	}
