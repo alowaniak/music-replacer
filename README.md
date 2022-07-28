@@ -32,6 +32,11 @@ The replaced (or "overridden") tracks will "behave" like the normal music. That 
  
  You can also "bulk" override with local songs. To do this right click the music tab and select "Override tracks".  
  Then enter the directory with the tracks. For this to work the file names must be identical to the track name.
+
+## Attribution
+This project uses the [JaCo mp3 player](http://jacomp3player.sourceforge.net) to play mp3, its source can be found [here](https://sourceforge.net/p/jacomp3player/code/HEAD/tree/).
+The JaCo project is licensed under LGPL which you can find [here](./legal/lgpl-3.0.txt) or otherwise [here](https://www.gnu.org/licenses/lgpl-3.0.en.html).
+In case one wishes to swap out JaCo for something different, one can clone this plugin and implement the [MusicPlayer](./src/main/java/nl/alowaniak/runelite/musicreplacer/MusicPlayer.java) for the mp3 extension.
  
  ## 💌 Support
  For any questions or feedback you can find me on Discord as `Mr.A#0220`
