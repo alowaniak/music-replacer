@@ -290,27 +290,34 @@ class TracksOverridesUi
 
 	private void scrollToTrack(String name)
 	{
-		Widget trackList = client.getWidget(WidgetInfo.MUSIC_TRACK_LIST);
-		if (trackList == null) return;
-
-		Widget track = Stream.of(trackList.getDynamicChildren())
-			.filter(w -> name.equals(w.getText()))
-			.findAny().orElse(null);
+		Widget track = findTrackWidget(name);
 		if (track == null) return;
+
+		Widget scrollContainer = client.getWidget(WidgetInfo.MUSIC_TRACK_SCROLL_CONTAINER);
+		if (scrollContainer == null) return;
 
 		int centralY = track.getRelativeY() + track.getHeight() / 2;
 
 		int newScroll = Ints.constrainToRange(
-			centralY - trackList.getHeight() / 2,
-			0, trackList.getScrollHeight()
+			centralY - scrollContainer.getHeight() / 2,
+			0, scrollContainer.getScrollHeight()
 		);
 
 		client.runScript(
 			ScriptID.UPDATE_SCROLLBAR,
 			WidgetInfo.MUSIC_TRACK_SCROLLBAR.getId(),
-			WidgetInfo.MUSIC_TRACK_LIST.getId(),
+			WidgetInfo.MUSIC_TRACK_SCROLL_CONTAINER.getId(),
 			newScroll
 		);
+	}
+
+	private Widget findTrackWidget(String name) {
+		Widget trackList = client.getWidget(WidgetInfo.MUSIC_TRACK_LIST);
+		if (trackList == null) return null;
+
+		return Stream.of(trackList.getDynamicChildren())
+				.filter(w -> name.equals(w.getText()))
+				.findAny().orElse(null);
 	}
 
 	private void clearCurrentlyPlayingWidget()
