@@ -94,6 +94,7 @@ class Tracks
 		}
 		executor.submit(() ->
 		{
+			musicReplacer.chatMsg("Overriding with tracks in " + dirPath + ".");
 			try (Stream<Path> ls = Files.list(dirPath))
 			{
 				ls.map(e -> new PathAndFilename(e))
@@ -110,6 +111,7 @@ class Tracks
 			{
 				log.warn("Error opening `" + dirPath + "` for bulk override.", e);
 			}
+			musicReplacer.chatMsg("Done overriding.");
 		});
 	}
 
@@ -130,7 +132,7 @@ class Tracks
 				musicReplacer.chatMsg("Skipping " + name + ", already overridden.");
 			}
 		});
-		executor.submit(() -> musicReplacer.chatMsg("Finished downloading preset " + preset.getName() + "."));
+		executor.submit(() -> musicReplacer.chatMsg("Finished downloading preset " + preset.getName() + ".", preset.getCredits()));
 	}
 
 	public void createOverride(String trackName, SearchResult hit)
@@ -165,7 +167,7 @@ class Tracks
 			configMgr.setConfiguration(CONFIG_GROUP, OVERRIDE_CONFIG_KEY_PREFIX + override.getName(), GSON.toJson(override));
 			musicReplacer.chatMsg(override.isFromLocal()
 							? "Overridden " + override.getName()
-							: "Overridden " + override.getName() + ", credits to " + override.getAdditionalInfo().get("Uploader")
+							: "Overridden " + override.getName() + ", uploaded by " + override.getAdditionalInfo().get("Uploader")
 			);
 		} else {
 			musicReplacer.chatMsg("Failed to override " + override.getName() + ", check the logs.");
