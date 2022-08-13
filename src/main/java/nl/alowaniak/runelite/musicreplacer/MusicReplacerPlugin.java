@@ -32,13 +32,12 @@ import java.util.Arrays;
 import java.util.Objects;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
-import java.util.function.BooleanSupplier;
 
 @Slf4j
 @PluginDescriptor(
 		name = "Music Replacer",
-		description = "Replace music tracks with your own music",
-		tags = {"music", "replace", "track", "beats"}
+		description = "Replace music tracks with presets (e.g. OSRSBeatz) or your own music",
+		tags = {"music", "replace", "track", "beats", "osrsbeatz", "rs3"}
 )
 @PluginDependency(MusicPlugin.class)
 public class MusicReplacerPlugin extends Plugin
