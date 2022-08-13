@@ -13,7 +13,7 @@ public interface MusicReplacerConfig extends Config
 	@ConfigItem(
 			keyName = "skipAlreadyOverriddenWhenBulkOverride",
 			name = "Skip overridden if bulk",
-			description = "When on this will skip any already overridden tracks when doing a bulk override. " +
+			description = "When on this will skip any already overridden tracks when doing a bulk override.<br>" +
 					"If off the bulk override will replace already overridden tracks (if said track is in the bulk)."
 	)
 	default boolean skipAlreadyOverriddenWhenBulkOverride()

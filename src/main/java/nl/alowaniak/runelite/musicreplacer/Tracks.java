@@ -7,6 +7,7 @@ import lombok.extern.slf4j.Slf4j;
 import net.runelite.api.Client;
 import net.runelite.api.EnumID;
 import net.runelite.client.RuneLite;
+import net.runelite.client.callback.ClientThread;
 import net.runelite.client.config.ConfigManager;
 
 import javax.inject.Inject;
@@ -53,6 +54,8 @@ class Tracks
 
 	@Inject
 	private Client client;
+	@Inject
+	private ClientThread clientThread;
 
 	@Inject
 	private ConfigManager configMgr;
@@ -88,30 +91,33 @@ class Tracks
 	 */
 	public void bulkCreateOverride(Path dirPath)
 	{
-        @Value class PathAndFilename {
+		@Value class PathAndFilename {
 			Path path;
 			@Getter(lazy = true) String filename = path.getFileName().toString().replaceAll("\\..+$", "");
 		}
-		executor.submit(() ->
-		{
-			musicReplacer.chatMsg("Overriding with tracks in " + dirPath + ".");
-			try (Stream<Path> ls = Files.list(dirPath))
+		clientThread.invoke(() -> { // Kinda ugly but we need to (initially) get the tracknames on the client thread
+			SortedSet<String> osrsTrackNames = getTrackNames();
+			executor.submit(() ->
 			{
-				ls.map(e -> new PathAndFilename(e))
-						.filter(e -> getTrackNames().contains(e.getFilename()))
-						.forEach(e -> {
-							if (!config.skipAlreadyOverriddenWhenBulkOverride() || !overrideExists(e.getFilename())) {
-								createOverride(e.getFilename(), e.getPath());
-							} else {
-								musicReplacer.chatMsg("Skipping " + e.getFilename() + ", already overridden.");
-							}
-						});
-			}
-			catch (IOException e)
-			{
-				log.warn("Error opening `" + dirPath + "` for bulk override.", e);
-			}
-			musicReplacer.chatMsg("Done overriding.");
+				musicReplacer.chatMsg("Overriding with tracks in " + dirPath + ".");
+				try (Stream<Path> ls = Files.list(dirPath))
+				{
+					ls.map(e -> new PathAndFilename(e))
+							.filter(e -> osrsTrackNames.contains(e.getFilename()))
+							.forEach(e -> {
+								if (!config.skipAlreadyOverriddenWhenBulkOverride() || !overrideExists(e.getFilename())) {
+									createOverride(e.getFilename(), e.getPath());
+								} else {
+									musicReplacer.chatMsg("Skipping " + e.getFilename() + ", already overridden.");
+								}
+							});
+				}
+				catch (IOException e)
+				{
+					log.warn("Error opening `" + dirPath + "` for bulk override.", e);
+				}
+				musicReplacer.chatMsg("Done overriding.");
+			});
 		});
 	}
 

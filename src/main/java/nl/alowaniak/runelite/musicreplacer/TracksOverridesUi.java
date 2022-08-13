@@ -258,8 +258,7 @@ class TracksOverridesUi
 			Widget trackPlayingWidget = client.getWidget(WidgetID.MUSIC_GROUP_ID, CURRENTLY_PLAYING_WIDGET_ID);
 			if (trackPlayingWidget == null) return;
 
-			String trackName = trackPlayingWidget.getText();
-			trackPlayingWidget.setOnClickListener((JavaScriptCallback) e -> scrollToTrack(trackName));
+			trackPlayingWidget.setOnClickListener((JavaScriptCallback) e -> scrollToTrack(e.getSource().getText()));
 			trackPlayingWidget.setHasListener(true);
 
 			TrackOverride override = tracks.getOverride(trackPlayingWidget.getText());

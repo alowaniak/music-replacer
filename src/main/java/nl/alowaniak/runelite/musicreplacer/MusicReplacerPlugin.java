@@ -26,6 +26,7 @@ import net.runelite.client.plugins.music.MusicConfig;
 import net.runelite.client.plugins.music.MusicPlugin;
 
 import javax.inject.Inject;
+import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.Arrays;
 import java.util.Objects;
@@ -97,7 +98,6 @@ public class MusicReplacerPlugin extends Plugin
 	@Subscribe
 	public void onGameTick(GameTick tick)
 	{
-		tracks.getTrackNames(); // Force loading on client thread
 		Widget curTrackWidget = client.getWidget(WidgetID.MUSIC_GROUP_ID, CURRENTLY_PLAYING_WIDGET_ID);
 		if (curTrackWidget == null) return;
 
@@ -156,6 +156,7 @@ public class MusicReplacerPlugin extends Plugin
 			try
 			{
 				player = trackToPlay.getPaths()
+						.filter(Files::exists)
 						.map(Path::toUri)
 						.map(MusicPlayer::create)
 						.filter(Objects::nonNull)
