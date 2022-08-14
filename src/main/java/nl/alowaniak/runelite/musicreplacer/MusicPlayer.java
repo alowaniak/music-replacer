@@ -87,12 +87,17 @@ public interface MusicPlayer {
 
     class AudioCuePlayer implements MusicPlayer
     {
+        // Same hacky solution as JaCo even though it shouldn't happen here cause audiocue fully loads in memory
+        private final File tempPlayFile;
         private final AudioCue audioCue;
 
         @SneakyThrows
         private AudioCuePlayer(URI media)
         {
-            audioCue = AudioCue.makeStereoCue(media.toURL(), 1);
+            tempPlayFile = File.createTempFile("tmpJacoPlayfile", ".mp3");
+            tempPlayFile.deleteOnExit();
+            Files.copy(new File(media).toPath(), tempPlayFile.toPath(), StandardCopyOption.REPLACE_EXISTING);
+            audioCue = AudioCue.makeStereoCue(tempPlayFile.toURL(), 1);
             audioCue.open();
         }
 
@@ -118,6 +123,7 @@ public interface MusicPlayer {
         @Override
         public void close()
         {
+            tempPlayFile.delete();
             audioCue.close();
         }
     }
