@@ -56,6 +56,17 @@ When overriding with a local file just select with which ([supported](#supported
 Clicking on the currently playing label will jump to the track in the music list.  
 ![](./demo-data/jump-to-track.gif)
 
+### Play overrides to end
+When the `Play overrides to end` config checkbox is on a new track won't be played until the current override is finished.
+Especially useful if you remain in one area with vanilla `Music area mode` on `Modern` because it might end your override tracks prematurely 
+(which happens because osrs thinks the vanilla track is done and starts playing a new one).
+It will practically queue the next track, and when one is queued the `Playing` label on the music tab will become bold and get a hover tooltip for which track is `Up next`.
+The label will also become **clickable** to end the current override.  
+![](./demo-data/playing-hover-up-next.gif)  
+❗ **Note**: This feature might be somewhat counter-intuitive, which is also why it's off by default.
+For example this also means that when you manually click a track to play it won't play until the current override is finished.
+(Unless then clicked on the `Playing` label as described above).
+
 ### Supported formats
 Currently only `wav` (in CD quality) and `mp3` formats are supported.
 

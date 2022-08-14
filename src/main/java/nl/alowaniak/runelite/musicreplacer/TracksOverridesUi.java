@@ -63,7 +63,7 @@ class TracksOverridesUi
 	private YouTubeSearcher ytSearcher;
 
 	private String lastPlayingTrack;
-	private boolean overrideWidgetsOutdated;
+	private boolean overrideWidgetsOutdated = true;
 
 	@Subscribe
 	public void onGameTick(GameTick tick)
@@ -336,6 +336,8 @@ class TracksOverridesUi
 
 	public void shutdown()
 	{
+		overrideWidgetsOutdated = true;
+		lastPlayingTrack = null;
 		clientThread.invoke(() ->
 		{
 			Widget trackList = client.getWidget(WidgetInfo.MUSIC_TRACK_LIST);

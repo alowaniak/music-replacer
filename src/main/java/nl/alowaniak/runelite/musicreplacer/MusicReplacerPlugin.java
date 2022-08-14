@@ -5,14 +5,14 @@ import com.google.common.primitives.Ints;
 import com.google.inject.Binder;
 import com.google.inject.Provides;
 import com.google.inject.name.Names;
-import lombok.Getter;
+import joptsimple.internal.Strings;
 import lombok.extern.slf4j.Slf4j;
 import net.runelite.api.ChatMessageType;
 import net.runelite.api.Client;
 import net.runelite.api.GameState;
 import net.runelite.api.events.ClientTick;
 import net.runelite.api.events.GameStateChanged;
-import net.runelite.api.events.GameTick;
+import net.runelite.api.widgets.JavaScriptCallback;
 import net.runelite.api.widgets.Widget;
 import net.runelite.api.widgets.WidgetID;
 import net.runelite.client.callback.ClientThread;
@@ -24,6 +24,8 @@ import net.runelite.client.plugins.PluginDependency;
 import net.runelite.client.plugins.PluginDescriptor;
 import net.runelite.client.plugins.music.MusicConfig;
 import net.runelite.client.plugins.music.MusicPlugin;
+import net.runelite.client.ui.overlay.tooltip.Tooltip;
+import net.runelite.client.ui.overlay.tooltip.TooltipManager;
 
 import javax.inject.Inject;
 import java.nio.file.Files;
@@ -32,6 +34,9 @@ import java.util.Arrays;
 import java.util.Objects;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+
+import static nl.alowaniak.runelite.musicreplacer.TracksOverridesUi.NORMAL_FONT;
+import static nl.alowaniak.runelite.musicreplacer.TracksOverridesUi.OVERRIDE_FONT;
 
 @Slf4j
 @PluginDescriptor(
@@ -48,6 +53,7 @@ public class MusicReplacerPlugin extends Plugin
 
 	public static final String MUSIC_REPLACER_API = "https://alowan.nl/runelite-music-replacer/";
 	public static final String MUSIC_REPLACER_EXECUTOR = "musicReplacerExecutor";
+	public static final int PLAYING_WIDGET_ID = 7;
 	public static final int CURRENTLY_PLAYING_WIDGET_ID = 8;
 
 	private static final int MUSIC_LOOP_STATE_VAR_ID = 4137;
@@ -64,6 +70,10 @@ public class MusicReplacerPlugin extends Plugin
 	private Client client;
 	@Inject
 	private EventBus eventBus;
+	@Inject
+	private ClientThread clientThread;
+	@Inject
+	private TooltipManager tooltipManager;
 
 	@Inject
 	private Tracks tracks;
@@ -72,12 +82,12 @@ public class MusicReplacerPlugin extends Plugin
 
 	@Inject
 	private MusicConfig musicConfig;
-
 	@Inject
-	private ClientThread clientThread;
+	private MusicReplacerConfig config;
 
 	private MusicPlayer player;
-	@Getter
+	private String actualCurTrack;
+	private boolean restoreActualCurTrack;
 	private TrackOverride trackToPlay;
 
 	private double fading;
@@ -95,21 +105,6 @@ public class MusicReplacerPlugin extends Plugin
 	}
 
 	@Subscribe
-	public void onGameTick(GameTick tick)
-	{
-		Widget curTrackWidget = client.getWidget(WidgetID.MUSIC_GROUP_ID, CURRENTLY_PLAYING_WIDGET_ID);
-		if (curTrackWidget == null) return;
-
-		String curTrack = curTrackWidget.getText();
-		TrackOverride newTrack = tracks.getOverride(curTrack);
-		if (!Objects.equals(trackToPlay, newTrack))
-		{
-			trackToPlay = newTrack;
-			if (fading <= 0) fading = 1;
-		}
-	}
-
-	@Subscribe
 	public void onGameStateChanged(GameStateChanged gameStateChanged)
 	{
 		if (gameStateChanged.getGameState() == GameState.LOGIN_SCREEN)
@@ -122,6 +117,45 @@ public class MusicReplacerPlugin extends Plugin
 	@Subscribe
 	public void onClientTick(ClientTick tick)
 	{
+		Widget curTrackWidget = client.getWidget(WidgetID.MUSIC_GROUP_ID, CURRENTLY_PLAYING_WIDGET_ID);
+		Widget playingWidget = client.getWidget(WidgetID.MUSIC_GROUP_ID, PLAYING_WIDGET_ID);
+		if (curTrackWidget == null || playingWidget == null) return;
+		String curTrack = curTrackWidget.getText();
+		if (Strings.isNullOrEmpty(curTrack)) return;
+
+		// I would rather do UI kinda stuff in TracksOverridesUi, but let's do it here for now
+		if (restoreActualCurTrack)
+		{
+			restoreActualCurTrack = false;
+			curTrackWidget.setText(curTrack = actualCurTrack);
+			playingWidget.setFontId(NORMAL_FONT);
+			playingWidget.setHasListener(false);
+		}
+		else if (config.playOverridesToEnd() && trackToPlay != null && !curTrack.equals(trackToPlay.getName()))
+		{
+			// curTrack is a new one, so keep track of actual playing track and change widget
+			actualCurTrack = curTrack;
+			playingWidget.setFontId(OVERRIDE_FONT);
+			Tooltip tooltip = new Tooltip("Up next: " + actualCurTrack);
+			playingWidget.setOnMouseRepeatListener((JavaScriptCallback) e ->
+			{
+				if (!tooltipManager.getTooltips().contains(tooltip)) tooltipManager.add(tooltip);
+			});
+			playingWidget.setOnClickListener((JavaScriptCallback) e -> restoreActualCurTrack = true);
+			playingWidget.setHasListener(true);
+			curTrackWidget.setText(curTrack = trackToPlay.getName());
+			// Sometimes a track tries to come through briefly, this might fix that hopefully?
+			applyVolume();
+		}
+
+		TrackOverride newTrack = tracks.getOverride(curTrack);
+		if (!Objects.equals(trackToPlay, newTrack))
+		{
+			trackToPlay = newTrack;
+			if (fading <= 0) fading = 1;
+		}
+
+
 		if (fading > 0)
 		{
 			applyVolume(fading -= .01);
@@ -134,7 +168,12 @@ public class MusicReplacerPlugin extends Plugin
 		else if (player != null)
 		{
 			double volume = (musicConfig.getMusicVolume() - 1) / MAX_VOL;
-			if ((oldVolume <= 0 && volume > 0) || (!player.isPlaying() && client.getVarbitValue(MUSIC_LOOP_STATE_VAR_ID) == 1))
+			boolean actualTrackIsBeingOverruled = config.playOverridesToEnd() && actualCurTrack != null && trackToPlay != null && !actualCurTrack.equals(trackToPlay.getName());
+			if (actualTrackIsBeingOverruled && (volume <= 0 || !player.isPlaying()))
+			{
+				restoreActualCurTrack = true;
+			}
+			else if ((oldVolume <= 0 && volume > 0) || (!player.isPlaying() && client.getVarbitValue(MUSIC_LOOP_STATE_VAR_ID) == 1))
 			{
 				// Restart play if
 				// we switched from muted to on (mimic osrs behavior)
@@ -221,6 +260,18 @@ public class MusicReplacerPlugin extends Plugin
 		tracksOverridesUi.shutdown();
 		trackToPlay = null;
 		stopPlaying();
+		clientThread.invoke(() ->
+		{
+			applyVolume();
+			Widget curTrackWidget = client.getWidget(WidgetID.MUSIC_GROUP_ID, CURRENTLY_PLAYING_WIDGET_ID);
+			Widget playingWidget = client.getWidget(WidgetID.MUSIC_GROUP_ID, PLAYING_WIDGET_ID);
+			if (curTrackWidget == null || playingWidget == null) return;
+			if (!Strings.isNullOrEmpty(actualCurTrack)) curTrackWidget.setText(actualCurTrack);
+			playingWidget.setFontId(NORMAL_FONT);
+			playingWidget.setHasListener(false);
+			playingWidget.setOnMouseRepeatListener((Object[]) null);
+			actualCurTrack = null;
+		});
 	}
 
 	public void chatMsg(String... msgs) {

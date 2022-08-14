@@ -20,4 +20,14 @@ public interface MusicReplacerConfig extends Config
 	{
 		return true;
 	}
+
+	@ConfigItem(
+			keyName = "playOverridesToEnd",
+			name = "Play overrides to end",
+			description = "When on a next track won't play until current override has ended."
+	)
+	default boolean playOverridesToEnd()
+	{
+		return false;
+	}
 }
