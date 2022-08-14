@@ -37,7 +37,7 @@ import java.util.concurrent.Executors;
 @PluginDescriptor(
 		name = "Music Replacer",
 		description = "Replace music tracks with presets (e.g. OSRSBeatz) or your own music",
-		tags = {"music", "replace", "track", "beats", "osrsbeatz", "rs3"}
+		tags = {"music", "replace", "override", "track", "song", "youtube", "beats", "osrsbeatz", "rs3"}
 )
 @PluginDependency(MusicPlugin.class)
 public class MusicReplacerPlugin extends Plugin
