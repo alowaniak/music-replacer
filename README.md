@@ -12,20 +12,20 @@ That is, it'll play whenever the original track would play and volume is control
 ### Bulk Override
 With bulk override you can replace multiple tracks at once.
 Just right-click on the music-tab, choose `Override tracks` and select if you want to override `From preset` or `From directory` (local).  
-![](./demo-data/bulk-override.gif)
+![](./demo-data/bulk-override.webp)
 
 #### From preset
 With presets you can easily replace all (available) tracks by some preset such as OSRSBeatz or RS3 music.
 When you select a preset it will begin downloading all the tracks in the preset ([or possibly skip if already overridden](#skip-overidden-if-bulk)).
 (Note that if you stop runelite prematurely it may not have overridden all tracks available in the preset.)  
-![](./demo-data/bulk-override-preset-osrsbeatz.gif)  
+![](./demo-data/bulk-override-preset-osrsbeatz.webp)  
 (In case you're missing any track in an existing preset, or a preset altogether, please create a [PR](https://docs.github.com/en/pull-requests/collaborating-with-pull-requests/proposing-changes-to-your-work-with-pull-requests/about-pull-requests) for the [presets file](./src/main/resources/presets.json)).
 
 #### From directory
 You can also bulk override with ([supported](#supported-formats)) local files.
 To do this just select the folder which contains the files.
 For this to work the file names must be **identical** to the track name.  
-![](./demo-data/bulk-override-preset-directory.gif)
+![](./demo-data/bulk-override-preset-directory.webp)
 
 #### Skip overidden if bulk
 In the config there's a `Skip overridden if bulk` checkbox that, when on, will cause bulk-override to skip any already overridden files.
@@ -36,17 +36,17 @@ To replace single tracks go to the track you wish to replace in the track list.
 (For ease of use you can [jump to track](#jump-to-track) or use the search functionality of the [music plugin](https://github.com/runelite/runelite/wiki/Music#music-plugin-configuration)).
 Right-click on the track you wish to replace and click `Override`.
 Then choose to override `With a local file.` or `From a youtube search.`.  
- ![](./demo-data/single-override.gif)
+ ![](./demo-data/single-override.webp)
 
 #### From a youtube search
 When overriding from a youtube search enter your desired search term and choose an item.
 Use `Continue` to see more search results.
 The audio will then be downloaded and when finished the track will be replaced.  
-![](./demo-data/single-override-youtube-search.gif)  
+![](./demo-data/single-override-youtube-search.webp)  
 
 #### From a local file
 When overriding with a local file just select with which ([supported](#supported-formats)) file you want to override.  
-![](./demo-data/single-override-local.gif)
+![](./demo-data/single-override-local.webp)
 
 ### Removing overrides
 - To remove all overrides right-click the music tab and select `Remove overrides`.
@@ -54,7 +54,7 @@ When overriding with a local file just select with which ([supported](#supported
 
 ### Jump to track
 Clicking on the currently playing label will jump to the track in the music list.  
-![](./demo-data/jump-to-track.gif)
+![](./demo-data/jump-to-track.webp)
 
 ### Play overrides to end
 When the `Play overrides to end` config checkbox is on a new track won't be played until the current override is finished.
@@ -62,7 +62,7 @@ Especially useful if you remain in one area with vanilla `Music area mode` on `M
 (which happens because osrs thinks the vanilla track is done and starts playing a new one).
 It will practically queue the next track, and when one is queued the `Playing` label on the music tab will become bold and get a hover tooltip for which track is `Up next`.
 The label will also become **clickable** to end the current override.  
-![](./demo-data/playing-hover-up-next.gif)  
+![](./demo-data/playing-hover-up-next.webp)  
 ❗ **Note**: This feature might be somewhat counter-intuitive, which is also why it's off by default.
 For example this also means that when you manually click a track to play it won't play until the current override is finished.
 (Unless then clicked on the `Playing` label as described above).
