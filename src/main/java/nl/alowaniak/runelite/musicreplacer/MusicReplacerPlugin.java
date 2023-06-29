@@ -53,8 +53,8 @@ public class MusicReplacerPlugin extends Plugin
 
 	public static final String MUSIC_REPLACER_API = "https://alowan.nl/runelite-music-replacer/";
 	public static final String MUSIC_REPLACER_EXECUTOR = "musicReplacerExecutor";
-	public static final int PLAYING_WIDGET_ID = 7;
-	public static final int CURRENTLY_PLAYING_WIDGET_ID = 8;
+	public static final int PLAYING_WIDGET_ID = 8;
+	public static final int CURRENTLY_PLAYING_WIDGET_ID = 9;
 
 	private static final int MUSIC_LOOP_STATE_VAR_ID = 4137;
 	private static final double MAX_VOL = 255;
