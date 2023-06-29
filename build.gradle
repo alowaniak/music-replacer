@@ -14,8 +14,8 @@ def runeLiteVersion = 'latest.release'
 dependencies {
 	compileOnly group: 'net.runelite', name:'client', version: runeLiteVersion
 
-	compileOnly 'org.projectlombok:lombok:1.18.4'
-	annotationProcessor 'org.projectlombok:lombok:1.18.4'
+	compileOnly 'org.projectlombok:lombok:1.18.20'
+	annotationProcessor 'org.projectlombok:lombok:1.18.20'
 
 	implementation files('libs/jaco-mp3-player-0.9.5.jar')
 
@@ -25,8 +25,8 @@ dependencies {
 
 group = 'nl.alowaniak.runelite'
 version = '0.1-SNAPSHOT'
-sourceCompatibility = '1.8'
 
 tasks.withType(JavaCompile) {
-	options.encoding = 'UTF-8'
+    options.encoding = 'UTF-8'
+    options.release.set(11)
 }
