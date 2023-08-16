@@ -53,11 +53,6 @@ class Tracks
 	public static final String FULL_OVERRIDE_CONFIG_KEY_PREFIX = CONFIG_GROUP + '.' + OVERRIDE_CONFIG_KEY_PREFIX;
 
 	@Inject
-	private Client client;
-	@Inject
-	private ClientThread clientThread;
-
-	@Inject
 	private ConfigManager configMgr;
 	@Inject
 	private MusicReplacerConfig config;
@@ -66,9 +61,6 @@ class Tracks
 	@Inject
 	@Named(MusicReplacerPlugin.MUSIC_REPLACER_EXECUTOR)
 	private ExecutorService executor;
-
-	@Getter(lazy=true)
-	private final SortedSet<String> trackNames = new TreeSet<>(Arrays.asList(client.getEnum(EnumID.MUSIC_TRACK_NAMES).getStringVals()));
 
 	/**
 	 * @return whether or not given {@code name} exists as a {@link TrackOverride}
@@ -95,29 +87,26 @@ class Tracks
 			Path path;
 			@Getter(lazy = true) String filename = path.getFileName().toString().replaceAll("\\..+$", "");
 		}
-		clientThread.invoke(() -> { // Kinda ugly but we need to (initially) get the tracknames on the client thread
-			SortedSet<String> osrsTrackNames = getTrackNames();
-			executor.submit(() ->
+		executor.submit(() ->
+		{
+			musicReplacer.chatMsg("Overriding with tracks in " + dirPath + ".");
+			try (Stream<Path> ls = Files.list(dirPath))
 			{
-				musicReplacer.chatMsg("Overriding with tracks in " + dirPath + ".");
-				try (Stream<Path> ls = Files.list(dirPath))
-				{
-					ls.map(e -> new PathAndFilename(e))
-							.filter(e -> osrsTrackNames.contains(e.getFilename()))
-							.forEach(e -> {
-								if (!config.skipAlreadyOverriddenWhenBulkOverride() || !overrideExists(e.getFilename())) {
-									createOverride(e.getFilename(), e.getPath());
-								} else {
-									musicReplacer.chatMsg("Skipping " + e.getFilename() + ", already overridden.");
-								}
-							});
-				}
-				catch (IOException e)
-				{
-					log.warn("Error opening `" + dirPath + "` for bulk override.", e);
-				}
-				musicReplacer.chatMsg("Done overriding.");
-			});
+				ls.map(e -> new PathAndFilename(e))
+						// Ideally we filtered only files with an osrs track name, but music track enum is removed, let place responsibility on user
+						.forEach(e -> {
+							if (!config.skipAlreadyOverriddenWhenBulkOverride() || !overrideExists(e.getFilename())) {
+								createOverride(e.getFilename(), e.getPath());
+							} else {
+								musicReplacer.chatMsg("Skipping " + e.getFilename() + ", already overridden.");
+							}
+						});
+			}
+			catch (IOException e)
+			{
+				log.warn("Error opening `" + dirPath + "` for bulk override.", e);
+			}
+			musicReplacer.chatMsg("Done overriding.");
 		});
 	}
 
