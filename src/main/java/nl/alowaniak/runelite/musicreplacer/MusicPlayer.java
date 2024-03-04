@@ -58,14 +58,7 @@ public interface MusicPlayer {
             tempPlayFile = File.createTempFile("tmpJacoPlayfile", ".mp3");
             tempPlayFile.deleteOnExit();
             File sourceFile = new File(mediaFile);
-            CompletableFuture.runAsync(() -> {
-                try {
-                    Files.copy(sourceFile.toPath(), tempPlayFile.toPath(), StandardCopyOption.REPLACE_EXISTING);
-                } catch (Exception e) {
-                    LoggerFactory.getLogger(FileUtil.class).error("Error copying file asynchronously", e);
-                }
-            });
-            
+            FileUtil.copyFileAsync(sourceFile, tempPlayFile);
             player.add(tempPlayFile);
         }
 
