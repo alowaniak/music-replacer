@@ -57,7 +57,8 @@ public interface MusicPlayer {
             player.getPlayList().clear();
             tempPlayFile = File.createTempFile("tmpJacoPlayfile", ".mp3");
             tempPlayFile.deleteOnExit();
-            Files.copy(new File(mediaFile).toPath(), tempPlayFile.toPath(), StandardCopyOption.REPLACE_EXISTING);
+            File sourceFile = new File(mediaFile);
+            FileUtil.copyFileAsync(sourceFile, tempPlayFile);
             player.add(tempPlayFile);
         }
 
@@ -96,9 +97,15 @@ public interface MusicPlayer {
         {
             tempPlayFile = File.createTempFile("tmpJacoPlayfile", ".mp3");
             tempPlayFile.deleteOnExit();
-            Files.copy(new File(media).toPath(), tempPlayFile.toPath(), StandardCopyOption.REPLACE_EXISTING);
-            audioCue = AudioCue.makeStereoCue(tempPlayFile.toURL(), 1);
-            audioCue.open();
+            File sourceFile = new File(media);
+            FileUtil.copyFileAsync(sourceFile, tempPlayFile).thenRun(() -> {
+                try {
+                    audioCue = AudioCue.makeStereoCue(tempPlayFile.toURL(), 1);
+                    audioCue.open();
+                } catch (Exception e) {
+                    LoggerFactory.getLogger(AudioCuePlayer.class).error("Error opening audio cue", e);
+                }
+            });
         }
 
         @Override
