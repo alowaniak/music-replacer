@@ -68,7 +68,7 @@ For example this also means that when you manually click a track to play it won'
 Currently only `wav` (in CD quality) and `mp3` formats are supported.
 
 ## Attribution
-This project uses the [JaCo mp3 player](http://jacomp3player.sourceforge.net) to play mp3, its source can be found [here](https://sourceforge.net/p/jacomp3player/code/HEAD/tree/).
+This project uses the RuneLite fork of [JaCo mp3 player](http://jacomp3player.sourceforge.net) to play mp3, its source can be found [here](https://github.com/runelite/jaco-mp3).
 The JaCo project is licensed under LGPL which you can find [here](./legal/lgpl-3.0.txt) or otherwise [here](https://www.gnu.org/licenses/lgpl-3.0.en.html).
 In case one wishes to swap out JaCo for something different, one can clone this plugin and implement the [MusicPlayer](./src/main/java/nl/alowaniak/runelite/musicreplacer/MusicPlayer.java) for the mp3 extension.
 
