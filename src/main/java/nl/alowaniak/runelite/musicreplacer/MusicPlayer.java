@@ -54,7 +54,7 @@ public interface MusicPlayer {
 
         @SneakyThrows
         public JacoPlayer(URI mediaFile) {
-            player.getPlayList().clear();
+            player.clearPlayList();
             tempPlayFile = File.createTempFile("tmpJacoPlayfile", ".mp3");
             tempPlayFile.deleteOnExit();
             Files.copy(new File(mediaFile).toPath(), tempPlayFile.toPath(), StandardCopyOption.REPLACE_EXISTING);
