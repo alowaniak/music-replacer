@@ -16,11 +16,6 @@ import java.util.function.Function;
 
 public interface MusicPlayer {
 
-    static void preloadNecessaries() {
-        // Jaco's MP3Player does some init that needs to happen on the UI thread
-        SwingUtilities.invokeLater(JacoPlayer.player::toString);
-    }
-
     ImmutableMap<String, Function<URI, MusicPlayer>> PLAYER_PER_EXT = ImmutableMap.of(
             ".mp3", JacoPlayer::new,
             ".wav", AudioCuePlayer::new
@@ -54,7 +49,7 @@ public interface MusicPlayer {
 
         @SneakyThrows
         public JacoPlayer(URI mediaFile) {
-            player.getPlayList().clear();
+            player.clearPlayList();
             tempPlayFile = File.createTempFile("tmpJacoPlayfile", ".mp3");
             tempPlayFile.deleteOnExit();
             Files.copy(new File(mediaFile).toPath(), tempPlayFile.toPath(), StandardCopyOption.REPLACE_EXISTING);
