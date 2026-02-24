@@ -52,10 +52,6 @@ public class MusicReplacerPlugin extends Plugin
 	 */
 	private static final int RETRIGGER_MUSIC_SCRIPT = 9238;
 
-	static {
-		MusicPlayer.preloadNecessaries();
-	}
-
 	public static final String MUSIC_REPLACER_API = "https://alowan.nl/runelite-music-replacer/";
 	public static final String MUSIC_REPLACER_EXECUTOR = "musicReplacerExecutor";
 
