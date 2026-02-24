@@ -1,13 +1,10 @@
 # ![icon](./icon.png) Music Replacer
-Replace OSRS tracks with presets (such as OSRSBeatz or RS3 music) or your own music.
-It also allows you to search the music from youtube.
+Replace OSRS tracks with presets (such as [OSRSBeatz](https://www.youtube.com/@OSRSBeatz) or RS3 music) or your own music.
+It also allows you to search the music from YouTube.
 
 The replaced (or "overridden") tracks will behave like the normal music.
-That is, it'll play whenever the original track would play and volume is controlled by the one in-game.
+That is, they'll play whenever the original track would play and volume is controlled by the in-game volume settings.
 
-❗ **Note**: the [music plugin] is required to be **on** and you must've changed volume through it at least once.
-(Because this plugin uses the [music plugin]'s music volume config item.)
- 
 ## 💁 Usage
 ### Bulk Override
 With bulk override you can replace multiple tracks at once.
@@ -57,7 +54,7 @@ Clicking on the currently playing label will jump to the track in the music list
 ![](./demo-data/jump-to-track.webp)
 
 ### Play overrides to end
-When the `Play overrides to end` config checkbox is on a new track won't be played until the current override is finished.
+When the `Play overrides to end` config checkbox is on, a new track won't be played until the current override is finished.
 Especially useful if you remain in one area with vanilla `Music area mode` on `Modern` because it might end your override tracks prematurely 
 (which happens because osrs thinks the vanilla track is done and starts playing a new one).
 It will practically queue the next track, and when one is queued the `Playing` label on the music tab will become bold and get a hover tooltip for which track is `Up next`.

@@ -1,7 +1,6 @@
 package nl.alowaniak.runelite.musicreplacer;
 
 import com.google.common.primitives.Doubles;
-import com.google.common.primitives.Ints;
 import com.google.inject.Binder;
 import com.google.inject.Provides;
 import com.google.inject.name.Names;
@@ -10,20 +9,20 @@ import lombok.extern.slf4j.Slf4j;
 import net.runelite.api.ChatMessageType;
 import net.runelite.api.Client;
 import net.runelite.api.GameState;
+import net.runelite.api.events.BeforeRender;
 import net.runelite.api.events.ClientTick;
 import net.runelite.api.events.GameStateChanged;
+import net.runelite.api.gameval.InterfaceID;
+import net.runelite.api.gameval.VarPlayerID;
+import net.runelite.api.gameval.VarbitID;
 import net.runelite.api.widgets.JavaScriptCallback;
 import net.runelite.api.widgets.Widget;
-import net.runelite.api.widgets.WidgetID;
 import net.runelite.client.callback.ClientThread;
 import net.runelite.client.config.ConfigManager;
 import net.runelite.client.eventbus.EventBus;
 import net.runelite.client.eventbus.Subscribe;
 import net.runelite.client.plugins.Plugin;
-import net.runelite.client.plugins.PluginDependency;
 import net.runelite.client.plugins.PluginDescriptor;
-import net.runelite.client.plugins.music.MusicConfig;
-import net.runelite.client.plugins.music.MusicPlugin;
 import net.runelite.client.ui.overlay.tooltip.Tooltip;
 import net.runelite.client.ui.overlay.tooltip.TooltipManager;
 
@@ -44,20 +43,26 @@ import static nl.alowaniak.runelite.musicreplacer.TracksOverridesUi.OVERRIDE_FON
 		description = "Replace music tracks with presets (e.g. OSRSBeatz) or your own music",
 		tags = {"music", "replace", "override", "track", "song", "youtube", "beats", "osrsbeatz", "rs3"}
 )
-@PluginDependency(MusicPlugin.class)
 public class MusicReplacerPlugin extends Plugin
 {
+
+	/**
+	 * Not sure how this works, but changing client music volume from 0->1 with {@link Client#setMusicVolume(int)} won't
+	 * make the track play again. Using this script to turn off and on however will.
+	 */
+	private static final int RETRIGGER_MUSIC_SCRIPT = 9238;
+
 	static {
 		MusicPlayer.preloadNecessaries();
 	}
 
 	public static final String MUSIC_REPLACER_API = "https://alowan.nl/runelite-music-replacer/";
 	public static final String MUSIC_REPLACER_EXECUTOR = "musicReplacerExecutor";
-	public static final int PLAYING_WIDGET_ID = 8;
-	public static final int CURRENTLY_PLAYING_WIDGET_ID = 9;
 
-	private static final int MUSIC_LOOP_STATE_VAR_ID = 4137;
-	private static final double MAX_VOL = 255;
+	/**
+	 * The max the volume sliders ({@link VarPlayerID#OPTION_MASTER_VOLUME}, {@link VarPlayerID#OPTION_MUSIC}) can be
+	 */
+	private static final double MAX_VOL_OPTION = 100;
 
 	@Override
 	public void configure(Binder binder)
@@ -80,8 +85,6 @@ public class MusicReplacerPlugin extends Plugin
 	@Inject
 	private TracksOverridesUi tracksOverridesUi;
 
-	@Inject
-	private MusicConfig musicConfig;
 	@Inject
 	private MusicReplacerConfig config;
 
@@ -113,12 +116,25 @@ public class MusicReplacerPlugin extends Plugin
 		}
 	}
 
+	/**
+	 * Tooltips need to be added before each render, so we clear it on client tick and gets added on mouse listener
+	 */
+	Tooltip upNextTooltip;
+	@Subscribe
+	public void onBeforeRender(BeforeRender event)
+	{
+		if (upNextTooltip != null) tooltipManager.add(upNextTooltip);
+	}
+
 	private double oldVolume = -1;
 	@Subscribe
 	public void onClientTick(ClientTick tick)
 	{
-		Widget curTrackWidget = client.getWidget(WidgetID.MUSIC_GROUP_ID, CURRENTLY_PLAYING_WIDGET_ID);
-		Widget playingWidget = client.getWidget(WidgetID.MUSIC_GROUP_ID, PLAYING_WIDGET_ID);
+		upNextTooltip = null;
+		applyVolume(); // Always make sure we're on the right volume/fade
+
+		Widget curTrackWidget = client.getWidget(InterfaceID.Music.NOW_PLAYING_TEXT);
+		Widget playingWidget = client.getWidget(InterfaceID.Music.NOW_PLAYING_TITLE);
 		if (curTrackWidget == null || playingWidget == null) return;
 		String curTrack = curTrackWidget.getText();
 		if (Strings.isNullOrEmpty(curTrack)) return;
@@ -137,15 +153,10 @@ public class MusicReplacerPlugin extends Plugin
 			actualCurTrack = curTrack;
 			playingWidget.setFontId(OVERRIDE_FONT);
 			Tooltip tooltip = new Tooltip("Up next: " + actualCurTrack);
-			playingWidget.setOnMouseRepeatListener((JavaScriptCallback) e ->
-			{
-				if (!tooltipManager.getTooltips().contains(tooltip)) tooltipManager.add(tooltip);
-			});
+			playingWidget.setOnMouseRepeatListener((JavaScriptCallback) e -> upNextTooltip = tooltip);
 			playingWidget.setOnClickListener((JavaScriptCallback) e -> restoreActualCurTrack = true);
 			playingWidget.setHasListener(true);
 			curTrackWidget.setText(curTrack = trackToPlay.getName());
-			// Sometimes a track tries to come through briefly, this might fix that hopefully?
-			applyVolume();
 		}
 
 		TrackOverride newTrack = tracks.getOverride(curTrack);
@@ -158,30 +169,26 @@ public class MusicReplacerPlugin extends Plugin
 
 		if (fading > 0)
 		{
-			applyVolume(fading -= .01);
-
-			if (fading <= 0)
+			if ((fading -= .017) <= 0)
 			{
 				stopCurrentAndStartNew();
 			}
 		}
 		else if (player != null)
 		{
-			double volume = (musicConfig.getMusicVolume() - 1) / MAX_VOL;
+			double volume = getEffectiveVolume();
 			boolean actualTrackIsBeingOverruled = config.playOverridesToEnd() && actualCurTrack != null && trackToPlay != null && !actualCurTrack.equals(trackToPlay.getName());
 			if (actualTrackIsBeingOverruled && (volume <= 0 || !player.isPlaying()))
 			{
 				restoreActualCurTrack = true;
 			}
-			else if ((oldVolume <= 0 && volume > 0) || (!player.isPlaying() && client.getVarbitValue(MUSIC_LOOP_STATE_VAR_ID) == 1))
+			else if ((oldVolume <= 0 && volume > 0) || (!player.isPlaying() && client.getVarbitValue(VarbitID.MUSIC_ENABLELOOP) == 1))
 			{
 				// Restart play if
 				// we switched from muted to on (mimic osrs behavior)
 				// or we ended and have loop enabled
 				player.play();
 			}
-
-			applyVolume();
 			oldVolume = volume;
 		}
 	}
@@ -212,35 +219,38 @@ public class MusicReplacerPlugin extends Plugin
 				trackToPlay = null;
 			}
 		}
-
-		applyVolume();
 	}
 
 	private void applyVolume()
 	{
-		applyVolume(1);
-	}
-
-	private void applyVolume(double multiplier)
-	{
-		// Setting client music volume with invokeLater seems to prevent the original music from coming through
-		// I'm guessing because it depends on "where" in the client loop the vol is set
-		// And with invokeLater it happens to "overwrite" Music plugin's write at the correct "point" in the client loop
-
+		// Applying volume is only needed for our own player (osrs obviously handles its own volume)
 		if (player == null)
-		{
-			int volume = (int) ((musicConfig.getMusicVolume() - 1) * multiplier);
-			clientThread.invokeLater(() -> client.setMusicVolume(Ints.constrainToRange(volume, 0, (int) MAX_VOL)));
+		{ // But if we turned it off before we do need to "activate" it again
+			if (client.getMusicVolume() == 0 && client.getGameState() == GameState.LOGGED_IN) {
+				// Just a setMusicVolume(>0) won't make the music start playing but running cs2 script to
+				// turn music off and on again will trigger it
+				var musicVol = client.getVarpValue(VarPlayerID.OPTION_MUSIC);
+				client.runScript(RETRIGGER_MUSIC_SCRIPT, InterfaceID.SettingsSide.MUSIC_SLIDER_BOBBLE, 0, 116, 1);
+				client.runScript(RETRIGGER_MUSIC_SCRIPT, InterfaceID.SettingsSide.MUSIC_SLIDER_BOBBLE, musicVol, 116, 1);
+			}
 		}
 		else
 		{
 			if (player.isPlaying())
 			{
-				double volume = Doubles.constrainToRange((musicConfig.getMusicVolume() - 1) / MAX_VOL * multiplier, 0, 1);
+				var multiplier = fading > 0 ? Math.pow(fading, 3) : 1d;
+				var volume = Doubles.constrainToRange(getEffectiveVolume() * multiplier, 0, 1);
 				player.setVolume(volume);
 			}
-			clientThread.invokeLater(() -> client.setMusicVolume(0));
+			client.setMusicVolume(0); // Constantly applying volume 0 is not needed but ohwell
 		}
+	}
+
+	private double getEffectiveVolume() {
+		var masterVol = client.getVarpValue(VarPlayerID.OPTION_MASTER_VOLUME) / MAX_VOL_OPTION;
+		var musicVol = client.getVarpValue(VarPlayerID.OPTION_MUSIC) / MAX_VOL_OPTION;
+		var effectiveVol = masterVol * musicVol;
+		return effectiveVol * effectiveVol; // Exponential volume since we hear logarithmically
 	}
 
 	public void stopPlaying()
@@ -263,8 +273,8 @@ public class MusicReplacerPlugin extends Plugin
 		clientThread.invoke(() ->
 		{
 			applyVolume();
-			Widget curTrackWidget = client.getWidget(WidgetID.MUSIC_GROUP_ID, CURRENTLY_PLAYING_WIDGET_ID);
-			Widget playingWidget = client.getWidget(WidgetID.MUSIC_GROUP_ID, PLAYING_WIDGET_ID);
+			Widget curTrackWidget = client.getWidget(InterfaceID.Music.NOW_PLAYING_TEXT);
+			Widget playingWidget = client.getWidget(InterfaceID.Music.NOW_PLAYING_TITLE);
 			if (curTrackWidget == null || playingWidget == null) return;
 			if (!Strings.isNullOrEmpty(actualCurTrack)) curTrackWidget.setText(actualCurTrack);
 			playingWidget.setFontId(NORMAL_FONT);

@@ -58,7 +58,7 @@ class YouTubeSearcher
         return http.newBuilder().readTimeout(1, TimeUnit.MINUTES)
             .build()
             .newCall(new Request.Builder()
-                .url(MUSIC_REPLACER_API + "search/" + URLEncoder.encode(term, StandardCharsets.UTF_8.toString()))
+                .url(MUSIC_REPLACER_API + "search/" + URLEncoder.encode(term, StandardCharsets.UTF_8))
                 .build()
             ).execute();
     }
