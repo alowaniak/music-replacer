@@ -222,7 +222,8 @@ public class MusicReplacerPlugin extends Plugin
 		// Applying volume is only needed for our own player (osrs obviously handles its own volume)
 		if (player == null)
 		{ // But if we turned it off before we do need to "activate" it again
-			if (client.getMusicVolume() == 0 && client.getGameState() == GameState.LOGGED_IN) {
+			var weTurnedOffMusic = client.getMusicVolume() == 0 && getEffectiveVolume() > 0;
+			if (weTurnedOffMusic && client.getGameState() == GameState.LOGGED_IN) {
 				// Just a setMusicVolume(>0) won't make the music start playing but running cs2 script to
 				// turn music off and on again will trigger it
 				var musicVol = client.getVarpValue(VarPlayerID.OPTION_MUSIC);
