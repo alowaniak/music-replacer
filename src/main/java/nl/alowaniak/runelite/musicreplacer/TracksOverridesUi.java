@@ -21,13 +21,13 @@ import javax.inject.Inject;
 import javax.inject.Singleton;
 import javax.swing.*;
 import javax.swing.filechooser.FileFilter;
-import java.io.File;
-import java.io.IOException;
-import java.io.InputStreamReader;
+import java.io.*;
+import java.nio.file.Files;
 import java.time.Duration;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
+import java.util.function.Consumer;
 import java.util.stream.Stream;
 
 import static net.runelite.http.api.RuneLiteAPI.GSON;
@@ -143,23 +143,46 @@ class TracksOverridesUi
 
 			addMenuEntry("Override tracks", entry).onClick(e ->
 				chatboxPanelManager.openTextMenuInput("How would you like to bulk override?")
-						.option("From preset", choosePresetForBulkOverride)
+						.option("From preset", choosePresetTypeForBulkOverride)
 						.option("From directory", () -> SwingUtilities.invokeLater(chooseDirectoryForBulkOverride))
 						.build()
 			);
 		}
 	}
 
-	private final Runnable choosePresetForBulkOverride =  () -> {
-		try (InputStreamReader reader = new InputStreamReader(getClass().getResourceAsStream("/presets.json"))) {
-			ChatboxTextMenuInput input = chatboxPanelManager.openTextMenuInput("Which preset? (This will download ALL overridden tracks!)");
+	private final Runnable choosePresetTypeForBulkOverride = () -> {
+		ChatboxTextMenuInput input = chatboxPanelManager.openTextMenuInput("");
+		input.option("Use default presets",() -> choosePresetForBulkOverride(getClass().getResourceAsStream("/presets.json")));
+		input.option("Use local presets",() -> {
+
+			JFileChooser fileChooser = new JFileChooser();
+			fileChooser.setFileSelectionMode(JFileChooser.FILES_ONLY);
+			fileChooser.setMultiSelectionEnabled(false);
+			int status = fileChooser.showOpenDialog(client.getCanvas());
+			if (status == JFileChooser.APPROVE_OPTION) {
+                try {
+                    choosePresetForBulkOverride(Files.newInputStream(fileChooser.getSelectedFile().toPath()));
+                } catch (IOException e) {
+					log.warn("Error opening `" + fileChooser.getSelectedFile().getPath() + "` for bulk override.", e);
+                }
+            }
+
+		});
+		input.build();
+	};
+
+
+	private void choosePresetForBulkOverride(InputStream inputStream) {
+		try (InputStreamReader reader = new InputStreamReader(inputStream)) {
 			List<Preset> presets = GSON.fromJson(reader, Preset.LIST_TYPE.getType());
+			ChatboxTextMenuInput input = chatboxPanelManager.openTextMenuInput("Which preset? (This will download ALL overridden tracks!)");
 			presets.forEach(preset -> input.option(preset.getName(), () -> tracks.bulkCreateOverride(preset)));
 			input.build();
 		} catch (NullPointerException | IOException ex) {
-			log.warn("Something went wrong when reading presets.", ex);
+			log.warn("Something went wrong when reading the preset.", ex);
 		}
-	};
+	}
+
 
 	private final Runnable chooseDirectoryForBulkOverride = () -> {
 		JFileChooser fileChooser = new JFileChooser();
